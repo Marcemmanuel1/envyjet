@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Accueil | EnvyJet",
   description: "Voyagez en toute élégance avec EnvyJet.",
+  icons: {
+    icon: "/images/logo_mobile.png",
+  },
 };
 
 export default function RootLayout({
