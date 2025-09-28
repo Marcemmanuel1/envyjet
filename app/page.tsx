@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, JSX } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiMapPin, 
@@ -24,27 +24,42 @@ import { FaPlane } from 'react-icons/fa';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-// Types pour les formulaires
-interface FormData {
+// Types TypeScript
+interface FAQItemProps {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onClick: () => void;
+}
+
+interface OneWayFormData {
   from: string;
   to: string;
   departureDate: string;
   passengers: number;
 }
 
-interface RoundTripFormData extends FormData {
+interface RoundTripFormData {
+  from: string;
+  to: string;
+  departureDate: string;
   returnDate: string;
+  passengers: number;
 }
 
-interface Segment {
+interface FlightSegment {
   from: string;
   to: string;
   date: string;
 }
 
 interface MultiLegFormData {
-  segments: Segment[];
+  segments: FlightSegment[];
   passengers: number;
+}
+
+interface FormProps {
+  onSubmit: (data: any) => void;
 }
 
 // Composant Video Background corrigé
@@ -98,21 +113,13 @@ const VideoBackground = () => {
         opacity: 0.9
       }}
     >
-      <source src="/videos/video-envyjet.MP4" type="video/mp4" />
+      <source src="/images/video-envyjet.MP4" type="video/mp4" />
     </video>
   );
 };
 
-// Types pour le composant FAQ
-interface FAQItemProps {
-  question: string;
-  answer: string;
-  isOpen: boolean;
-  onClick: () => void;
-}
-
 // Composant Accordéon pour la FAQ
-const FAQItem = ({ question, answer, isOpen, onClick }: FAQItemProps) => {
+const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onClick }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -152,14 +159,9 @@ const FAQItem = ({ question, answer, isOpen, onClick }: FAQItemProps) => {
   );
 };
 
-// Types pour les props des formulaires
-interface FormProps {
-  onSubmit: (data: any) => void;
-}
-
 // Composants pour les formulaires de réservation
-const OneWayForm = ({ onSubmit }: FormProps) => {
-  const [formData, setFormData] = useState<FormData>({
+const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
+  const [formData, setFormData] = useState<OneWayFormData>({
     from: '',
     to: '',
     departureDate: '',
@@ -243,7 +245,7 @@ const OneWayForm = ({ onSubmit }: FormProps) => {
   );
 };
 
-const RoundTripForm = ({ onSubmit }: FormProps) => {
+const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<RoundTripFormData>({
     from: '',
     to: '',
@@ -342,8 +344,8 @@ const RoundTripForm = ({ onSubmit }: FormProps) => {
   );
 };
 
-const MultiLegForm = ({ onSubmit }: FormProps) => {
-  const [segments, setSegments] = useState<Segment[]>([{ from: '', to: '', date: '' }]);
+const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
+  const [segments, setSegments] = useState<FlightSegment[]>([{ from: '', to: '', date: '' }]);
   const [passengers, setPassengers] = useState(1);
 
   const addSegment = () => {
@@ -356,7 +358,7 @@ const MultiLegForm = ({ onSubmit }: FormProps) => {
     }
   };
 
-  const updateSegment = (index: number, field: keyof Segment, value: string) => {
+  const updateSegment = (index: number, field: keyof FlightSegment, value: string) => {
     const newSegments = [...segments];
     newSegments[index][field] = value;
     setSegments(newSegments);
@@ -472,24 +474,6 @@ const MultiLegForm = ({ onSubmit }: FormProps) => {
   );
 };
 
-// Types pour les données de la page
-interface Service {
-  title: string;
-  description: string;
-  icon: JSX.Element;
-}
-
-interface Advantage {
-  title: string;
-  description: string;
-  icon: JSX.Element;
-}
-
-interface FAQ {
-  question: string;
-  answer: string;
-}
-
 // Composant principal
 export default function Home() {
   const [activeForm, setActiveForm] = useState('oneWay');
@@ -497,7 +481,7 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-  const bookingSectionRef = useRef<HTMLDivElement>(null);
+  const bookingSectionRef = useRef<HTMLElement>(null);
 
   const handleFormSubmit = async (formData: any) => {
     setIsLoading(true);
@@ -527,7 +511,7 @@ export default function Home() {
     { id: 'multiLeg', label: 'Multi-Leg', icon: <FiPlus size={18} /> }
   ];
 
-  const services: Service[] = [
+  const services = [
     {
       title: "Exclusive private jet charter",
       description: "From your starting point to your final destination, relax with complete peace of mind.",
@@ -545,7 +529,7 @@ export default function Home() {
     }
   ];
 
-  const advantages: Advantage[] = [
+  const advantages = [
     {
       title: "Speed",
       description: "Our private jet booking system is exceptionally fast, offering a major competitive advantage. Thanks to an intuitive user interface and cutting-edge technology, our customers can finalise their bookings in just a few clicks, dramatically reducing the time needed to plan their trips.",
@@ -568,7 +552,7 @@ export default function Home() {
     }
   ];
 
-  const faqs: FAQ[] = [
+  const faqs = [
     {
       question: "How far in advance should I book a charter to guarantee availability?",
       answer: "The recommended time frame for booking a charter flight may vary depending on several factors, including season, destination and aircraft availability. However, to ensure availability and have the most choice in terms of aircraft and routes, we generally recommend booking your charter flight at least a few weeks in advance."
@@ -653,27 +637,209 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Le reste du code reste inchangé... */}
-      {/* [Coller ici les sections About, Services, Booking, Advantages, FAQ, Newsletter] */}
-      
       {/* Section About */}
       <section id="why-envyjet" className="py-20 bg-gray-50">
-        {/* ... contenu de la section About ... */}
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-4xl lg:text-5xl font-light text-gray-900 mb-6">
+                About <span className="text-[#D08A10]">EnvyJet</span>
+              </h2>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                We save you time and provide you with flight comfort. Our dedicated team ensures that our business partners, 
+                guests and their families enjoy an exceptional trip. Whether for a pressing business trip or a personal getaway, 
+                our services are designed to be fast, efficient and economical.
+              </p>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center space-x-3">
+                  <FiCheckCircle className="text-[#D08A10]" size={20} />
+                  <span className="text-gray-900 font-medium">A strong team with over 20 years of expertise</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FiCheckCircle className="text-[#D08A10]" size={20} />
+                  <span className="text-gray-900 font-medium">An unforgettable travel experience</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-[#D08A10] to-[#F4C257] text-white px-6 py-3 rounded-full font-medium"
+                >
+                  FIND OUT MORE
+                </motion.button>
+                <div className="flex items-center space-x-2 text-gray-700 font-medium">
+                  <FiPhone size={20} />
+                  <span>+225 0759102503</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="bg-gradient-to-br from-[#D08A10] to-[#F4C257] rounded-2xl p-1">
+                <div className="bg-white rounded-2xl p-8 h-96 flex items-center justify-center shadow-xl">
+                  <FaPlane size={120} className="text-[#D08A10] opacity-20" />
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* Section Services */}
       <section id="services" className="py-20 bg-white">
-        {/* ... contenu de la section Services ... */}
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-light text-gray-900 mb-4">Our Services</h2>
+            <p className="text-gray-600 text-lg">Experience the pinnacle of luxury air travel</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {services.map((service, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -10 }}
+                className="bg-gray-50 rounded-2xl p-8 hover:bg-white hover:shadow-xl transition-all duration-300 group border border-gray-100"
+              >
+                <div className="mb-4">{service.icon}</div>
+                <h3 className="text-xl font-medium text-gray-900 mb-4">{service.title}</h3>
+                <p className="text-gray-600 mb-6">{service.description}</p>
+                <button className="text-[#D08A10] font-medium group-hover:underline flex items-center space-x-2">
+                  <span>MORE INFO</span>
+                  <FiArrowRight size={16} />
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Section Réservation */}
       <section ref={bookingSectionRef} id="booking" className="py-20 bg-gradient-to-br from-gray-900 to-black">
-        {/* ... contenu de la section Booking ... */}
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-light text-white mb-4">Book Your Flight</h2>
+            <p className="text-white/60 text-lg">Experience luxury in the skies with our premium private jet services</p>
+          </motion.div>
+
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="bg-black/40 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl"
+            >
+              {/* Onglets */}
+              <div className="flex bg-white/10 rounded-2xl p-1 mb-8">
+                {formTabs.map((tab) => (
+                  <motion.button
+                    key={tab.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveForm(tab.id)}
+                    className={`flex-1 py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 ${
+                      activeForm === tab.id 
+                        ? 'bg-gradient-to-r from-[#D08A10] to-[#F4C257] text-white shadow-lg' 
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                  >
+                    {tab.icon}
+                    <span className="font-medium">{tab.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Formulaire */}
+              <AnimatePresence mode="wait">
+                {isLoading ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center py-12"
+                  >
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-12 h-12 border-4 border-[#D08A10] border-t-transparent rounded-full mb-4"
+                    />
+                    <p className="text-white/80">Processing your luxury journey...</p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={activeForm}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {activeForm === 'oneWay' && <OneWayForm onSubmit={handleFormSubmit} />}
+                    {activeForm === 'roundTrip' && <RoundTripForm onSubmit={handleFormSubmit} />}
+                    {activeForm === 'multiLeg' && <MultiLegForm onSubmit={handleFormSubmit} />}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* Section Avantages */}
       <section className="py-20 bg-gray-50">
-        {/* ... contenu de la section Advantages ... */}
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-light text-gray-900 mb-4">Our Advantages</h2>
+            <p className="text-gray-600 text-lg">Why choose EnvyJet for your private air travel</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {advantages.map((advantage, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
+              >
+                <div className="flex items-center space-x-4 mb-4">
+                  {advantage.icon}
+                  <h3 className="text-2xl font-medium text-gray-900">{advantage.title}</h3>
+                </div>
+                <p className="text-gray-700 leading-relaxed">{advantage.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Section FAQ avec accordéon */}
@@ -705,7 +871,48 @@ export default function Home() {
 
       {/* Section Newsletter */}
       <section className="py-20 bg-gradient-to-br from-[#D08A10] to-[#F4C257]">
-        {/* ... contenu de la section Newsletter ... */}
+        <div className="container mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-light text-white mb-4">Newsletter</h2>
+            <p className="text-white/90 text-lg mb-8">Stay updated with our latest offers and services</p>
+            
+            <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex gap-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="flex-1 bg-white/20 text-white placeholder-white/70 rounded-full px-6 py-3 focus:outline-none focus:bg-white/30 backdrop-blur-lg"
+                required
+              />
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-white text-[#D08A10] px-6 py-3 rounded-full font-medium"
+              >
+                <FiSend size={20} />
+              </motion.button>
+            </form>
+
+            <AnimatePresence>
+              {isSubscribed && (
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="text-white mt-4 font-medium"
+                >
+                  Thank you for subscribing!
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </section>
 
       {/* Footer */}
