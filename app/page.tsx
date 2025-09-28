@@ -572,12 +572,14 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full min-h-screen overflow-x-hidden"
+         style={{ margin: 0, padding: 0 }}>
       {/* Navigation */}
       <Navbar transparent={true} />
 
       {/* Section Hero avec VideoBackground adaptatif */}
-      <section className="relative h-screen flex items-center justify-center">
+      <section className="relative h-screen flex items-center justify-center w-full overflow-hidden"
+               style={{ margin: 0, padding: 0, minWidth: '100vw' }}>
         <VideoBackground />
         
         {/* Overlay de dégradé plus léger */}
@@ -638,8 +640,8 @@ export default function Home() {
       </section>
 
       {/* Section About */}
-      <section id="why-envyjet" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
+      <section id="why-envyjet" className="py-20 bg-gray-50 w-full" style={{ margin: 0 }}>
+        <div className="container mx-auto px-6 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -698,8 +700,9 @@ export default function Home() {
       </section>
 
       {/* Section Services */}
-      <section id="services" className="py-20 bg-white">
-        <div className="container mx-auto px-6">
+      <section id="services" className="py-20 bg-white w-full" style={{ margin: 0 }}>
+        <div className="container mx-auto px-6 max-w-7xl">
+
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -734,8 +737,8 @@ export default function Home() {
       </section>
 
       {/* Section Réservation */}
-      <section ref={bookingSectionRef} id="booking" className="py-20 bg-gradient-to-br from-gray-900 to-black">
-        <div className="container mx-auto px-6">
+      <section ref={bookingSectionRef} id="booking" className="py-20 bg-gradient-to-br from-gray-900 to-black w-full" style={{ margin: 0 }}>
+        <div className="container mx-auto px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -810,8 +813,8 @@ export default function Home() {
       </section>
 
       {/* Section Avantages */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
+      <section className="py-20 bg-gray-50 w-full" style={{ margin: 0 }}>
+        <div className="container mx-auto px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -843,7 +846,7 @@ export default function Home() {
       </section>
 
       {/* Section FAQ avec accordéon */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-6 max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -870,8 +873,8 @@ export default function Home() {
       </section>
 
       {/* Section Newsletter */}
-      <section className="py-20 bg-gradient-to-br from-[#D08A10] to-[#F4C257]">
-        <div className="container mx-auto px-6 text-center">
+      <section className="py-20 bg-gradient-to-br from-[#D08A10] to-[#F4C257] w-full" style={{ margin: 0 }}>
+        <div className="container mx-auto px-6 text-center max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
