@@ -82,39 +82,30 @@ const VideoBackground = () => {
     };
   }, []);
 
-  if (!isMobile) {
-    return (
-      <>
-        <iframe
-          src="https://iframe.mediadelivery.net/embed/157813/55901219-d83b-49e8-932d-f27411cb735f?autoplay=true&loop=true&muted=true&preload=true"
-          loading="lazy"
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-          allowFullScreen
-          className="absolute top-0 left-0 w-full h-full object-cover"
-          style={{ 
-            filter: "brightness(0.8) contrast(1.1) saturate(1.2)",
-            opacity: 0.9
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/10" />
-      </>
-    );
-  }
-
+  // Utiliser la vidéo locale pour tous les appareils maintenant
   return (
-    <video
-      autoPlay
-      muted
-      loop
-      playsInline
-      className="absolute top-0 left-0 w-full h-full object-cover"
-      style={{ 
-        filter: "brightness(0.8) contrast(1.1) saturate(1.2)",
-        opacity: 0.9
-      }}
-    >
-      <source src="/images/video-envyjet.MP4" type="video/mp4" />
-    </video>
+    <>
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover"
+        style={{ 
+          filter: "brightness(0.8) contrast(1.1) saturate(1.2)",
+          opacity: 0.9
+        }}
+      >
+        <source src="/images/envyjet.mp4" type="video/mp4" />
+        {/* Fallback pour les navigateurs qui ne supportent pas MP4 */}
+        <source src="/images/envyjet.webm" type="video/webm" />
+        {/* Message de fallback si la vidéo ne peut pas être lue */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
+          <p className="text-white text-lg">Chargement de la vidéo...</p>
+        </div>
+      </video>
+      <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/10" />
+    </>
   );
 };
 
