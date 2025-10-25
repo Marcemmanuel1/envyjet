@@ -124,6 +124,7 @@ export default function Details() {
 
   // Styles réutilisables pour une meilleure maintenabilité
   const inputStyles = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const inputStyletitle = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none";
   const labelStyles = "block text-sm font-medium text-gray-700 mb-2";
   const checkboxStyles = "mt-1 w-4 h-4 text-blue-400 border-gray-300 focus:ring-blue-500";
 
@@ -160,7 +161,7 @@ export default function Details() {
                 noValidate // Désactive la validation HTML native pour un contrôle personnalisé
               >
                 {/* Groupe: Titre et Prénom */}
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-4 gap-1">
                   {/* Sélecteur de titre */}
                   <div className="col-span-1">
                     <label htmlFor="title" className={labelStyles}>
@@ -171,7 +172,7 @@ export default function Details() {
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      className={inputStyles}
+                      className={inputStyletitle}
                       aria-label="Sélectionnez votre titre"
                     >
                       <option value="">Title</option>
