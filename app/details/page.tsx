@@ -351,12 +351,12 @@ export default function Details() {
                 </h1>
 
 
-                <div className="bg-black/60 text-white px-8 w-[90%] mx-auto">
-                  <div className="relative flex items-center justify-between">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold">ABJ</p>
+                <div className="bg-black/60 text-white px-20 w-[90%] mx-auto">
+                  <div className="relative z-0 flex items-center justify-between">
+                    <div className="text-center absolute left-3">
+                      <p className="text-xl">ABJ</p>
                     </div>
-                    <div className="relative pt-4">
+                    <div className="relative pt-4 left-7 z-10">
                       <svg width="240" height="180" viewBox="0 0 240 60" xmlns="http://www.w3.org/2000/svg">
                         <path d="M0,10 A100,60 0 0,1 240,60" stroke="#d3a936" strokeWidth="2" fill="transparent" />
                       </svg>
@@ -369,8 +369,8 @@ export default function Details() {
                     </div>
 
                     {/* Arrivée - MBW */}
-                    <div className="text-center">
-                      <p className="text-3xl font-bold">MBW</p>
+                    <div className="text-center absolute right-3">
+                      <p className="text-xl">MBW</p>
                     </div>
                   </div>
 
