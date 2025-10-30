@@ -38,10 +38,11 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
   }, [isMobileMenuOpen]);
 
   const menuItems = [
-    { label: 'Why EnvyJet', href: '/why-envyjet' },
-    { label: 'Nectar', href: '#nectar' },
-    { label: 'Shared Flights', href: '#shared-flights' },
-    { label: 'Contact Us', href: '#contact' }
+    { label: 'WHY ENVYJET', href: '/why-envyjet' },
+    { label: 'NECTAR', href: '/nectar' },
+    { label: 'SHARED FLIGHTS', href: '/shared-flights' },
+    { label: 'EMPTY LEGS', href: '/empty-legs' },
+    { label: 'CONTACT US', href: '/contact' }
   ];
 
   return (
@@ -166,7 +167,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             </div>
           </div>
 
-          {/* Version Mobile - Icônes à droite */}
+          {/* Version Mobile */}
           <div className="flex lg:hidden items-center space-x-3">
             {/* Numéro de téléphone (icône seulement) */}
             <motion.a
@@ -224,7 +225,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, x: '100%' }}
+            initial={{ opacity: 0, x: '-100%' }}
             animate={{
               opacity: 1,
               x: 0,
@@ -232,10 +233,10 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             }}
             exit={{
               opacity: 0,
-              x: '100%',
+              x: '-100%',
               transition: { type: "spring", stiffness: 300, damping: 30 }
             }}
-            className="fixed right-0 top-0 bottom-0 z-50 w-80 bg-[#193650] shadow-2xl lg:hidden"
+            className="fixed left-0 top-0 bottom-0 z-50 w-80 bg-[#193650] shadow-2xl lg:hidden"
             style={{
               fontFamily: 'Century Gothic, sans-serif',
               borderRadius: 0,
@@ -245,11 +246,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             <div className="flex flex-col h-full p-6">
               {/* En-tête du menu */}
               <div className="flex justify-between items-center mb-8">
-                <img
-                  src="/images/logo_footer.png"
-                  alt="EnvyJet"
-                  className="h-8 w-auto"
-                />
+
                 <motion.button
                   onClick={() => setIsMobileMenuOpen(false)}
                   whileHover={{ scale: 1.1, rotate: 90 }}
@@ -258,6 +255,12 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 >
                   <FiX size={20} />
                 </motion.button>
+
+                <img
+                  src="/images/logo_footer.png"
+                  alt="EnvyJet"
+                  className="h-8 w-auto"
+                />
               </div>
 
               {/* Items du menu */}

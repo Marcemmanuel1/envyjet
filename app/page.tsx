@@ -26,6 +26,7 @@ import {
 } from 'react-icons/fi';
 import { BiBriefcase } from 'react-icons/bi';
 import { MdLuggage, MdPets } from 'react-icons/md';
+import { useRouter } from 'next/navigation';
 
 // Import Swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -39,20 +40,35 @@ import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 
 // =============================================================================
-// UTILITAIRES DE DATE
-// =============================================================================
-
-const formatDate = (date: Date): string => {
-  return date.toISOString().split('T')[0];
-};
-
-const getToday = (): string => {
-  return formatDate(new Date());
-};
-
-// =============================================================================
 // TYPES ET INTERFACES
 // =============================================================================
+
+interface Airport {
+  id: number;
+  ident: string;
+  type: string;
+  name: string;
+  latitude_deg: number;
+  longitude_deg: number;
+  elevation_ft: number | null;
+  continent: string | null;
+  country_name: string;
+  iso_country: string;
+  region_name: string;
+  iso_region: string;
+  local_region: string;
+  municipality: string;
+  scheduled_service: number;
+  gps_code: string;
+  icao_code: string;
+  iata_code: string | null;
+  local_code: string | null;
+  home_link: string | null;
+  wikipedia_link: string | null;
+  keywords: string | null;
+  score: number;
+  last_updated: string;
+}
 
 interface PetData {
   small: number;
@@ -200,6 +216,232 @@ const ADVANTAGES_DATA = [
 ] as const;
 
 // =============================================================================
+// HOOK POUR LA RECHERCHE D'AÉROPORTS
+// =============================================================================
+
+const useAirports = () => {
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAirports = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('/world-airports.json');
+        if (!response.ok) {
+          throw new Error('Failed to load airports data');
+        }
+        const data = await response.json();
+        setAirports(data);
+      } catch (err) {
+        console.error('Error loading airports:', err);
+        setError('Could not load airports data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAirports();
+  }, []);
+
+  const searchAirports = useCallback((query: string): Airport[] => {
+    if (!query || query.length < 2) return [];
+
+    const lowercaseQuery = query.toLowerCase().trim();
+
+    return airports
+      .filter(airport => {
+        const iataCode = (airport.iata_code || '').toLowerCase();
+        const icaoCode = (airport.icao_code || '').toLowerCase();
+        const name = (airport.name || '').toLowerCase();
+        const municipality = (airport.municipality || '').toLowerCase();
+        const countryName = (airport.country_name || '').toLowerCase();
+        const keywords = (airport.keywords || '').toLowerCase();
+
+        return (
+          iataCode.includes(lowercaseQuery) ||
+          icaoCode.includes(lowercaseQuery) ||
+          name.includes(lowercaseQuery) ||
+          municipality.includes(lowercaseQuery) ||
+          countryName.includes(lowercaseQuery) ||
+          keywords.includes(lowercaseQuery)
+        );
+      })
+      .sort((a, b) => {
+        // Prioriser les aéroports avec IATA code
+        if (a.iata_code && !b.iata_code) return -1;
+        if (!a.iata_code && b.iata_code) return 1;
+
+        // Prioriser les correspondances exactes avec IATA code
+        const aIataMatch = a.iata_code?.toLowerCase() === lowercaseQuery;
+        const bIataMatch = b.iata_code?.toLowerCase() === lowercaseQuery;
+        if (aIataMatch && !bIataMatch) return -1;
+        if (!aIataMatch && bIataMatch) return 1;
+
+        // Trier par score
+        return b.score - a.score;
+      })
+      .slice(0, 10);
+  }, [airports]);
+
+  return { airports, loading, error, searchAirports };
+};
+
+// =============================================================================
+// COMPOSANT CHAMP AÉROPORT AVEC SUGGESTIONS
+// =============================================================================
+
+interface AirportInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  onAirportSelect?: (airport: Airport) => void;
+}
+
+const AirportInput: React.FC<AirportInputProps> = ({
+  value,
+  onChange,
+  placeholder,
+  onAirportSelect
+}) => {
+  const [suggestions, setSuggestions] = useState<Airport[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { searchAirports, loading, error } = useAirports();
+
+  useEffect(() => {
+    if (value.length >= 2 && !loading && isFocused) {
+      const results = searchAirports(value);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [value, searchAirports, loading, isFocused]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+        setIsFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectAirport = (airport: Airport) => {
+    const displayValue = airport.iata_code
+      ? `${airport.iata_code} - ${airport.name}, ${airport.municipality}`
+      : `${airport.icao_code} - ${airport.name}, ${airport.municipality}`;
+
+    onChange(displayValue);
+    setShowSuggestions(false);
+    setIsFocused(false);
+
+    if (onAirportSelect) {
+      onAirportSelect(airport);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+    setIsFocused(true);
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    if (value.length >= 2 && !loading) {
+      const results = searchAirports(value);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    }
+  };
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <input
+        type="text"
+        value={value}
+        onChange={handleInputChange}
+        onFocus={handleFocus}
+        placeholder={placeholder}
+        className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-4 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm lg:text-base transition-all"
+        style={{ fontFamily: 'Century Gothic, sans-serif' }}
+        required
+      />
+
+
+      {loading && (
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#a98c2f]"></div>
+        </div>
+      )}
+
+      <AnimatePresence>
+        {showSuggestions && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-full left-0 right-0 bg-white border border-[#969696]/20 shadow-2xl z-[1001] max-h-60 overflow-y-auto mt-1 custom-scrollbar"
+          >
+            {suggestions.map((airport, index) => (
+              <motion.div
+                key={`${airport.id}-${index}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.03 }}
+                className="px-4 py-3 hover:bg-[#f8f8f8] cursor-pointer border-b border-[#969696]/10 last:border-b-0 transition-colors"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelectAirport(airport);
+                }}
+              >
+                <div className="font-medium text-[#193650] text-sm">
+                  {airport.iata_code ? (
+                    <span className="text-[#a98c2f] font-bold">{airport.iata_code}</span>
+                  ) : (
+                    <span className="text-[#a98c2f] font-bold">{airport.icao_code}</span>
+                  )}
+                  {' '}- {airport.name}
+                </div>
+                <div className="text-[#969696] text-xs mt-0.5">
+                  {airport.municipality}, {airport.country_name}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {error && (
+        <div className="absolute top-full left-0 right-0 bg-red-50 border border-red-200 p-2 text-red-600 text-xs mt-1 z-[1000]">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// =============================================================================
+// UTILITAIRES DE DATE
+// =============================================================================
+
+const formatDate = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+const getToday = (): string => {
+  return formatDate(new Date());
+};
+
+// =============================================================================
 // HOOKS PERSONNALISÉS
 // =============================================================================
 
@@ -309,7 +551,6 @@ const PassengersDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Calcul du total de passagers
   const totalPassengers =
     (passengers.adults || 0) +
     (passengers.children || 0) +
@@ -335,8 +576,6 @@ const PassengersDropdown = ({
         className="w-full bg-white border border-[#969696]/30 text-[#193650] px-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] flex items-center justify-center gap-2 transition-all"
       >
         <FiUsers className="text-[#a98c2f]" size={24} />
-
-        {/* Affiche le nombre total si > 0 */}
         {totalPassengers > 0 && (
           <span className="text-sm font-semibold text-[#193650]">
             {totalPassengers}
@@ -352,10 +591,10 @@ const PassengersDropdown = ({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
             className={`
-          absolute top-full mt-2 
-          bg-white border border-[#969696]/20 shadow-2xl z-[1000] overflow-hidden min-w-[250px]
-          left-0 sm:right-0 sm:left-auto
-        `}
+              absolute top-full mt-2 
+              bg-white border border-[#969696]/20 shadow-2xl z-[1000] overflow-hidden min-w-[250px]
+              left-0 sm:right-0 sm:left-auto
+            `}
           >
             <div className="py-2">
               <DropdownCounter
@@ -378,10 +617,8 @@ const PassengersDropdown = ({
         )}
       </AnimatePresence>
     </div>
-
   );
 };
-
 
 const PetsDropdown = ({
   pets,
@@ -393,7 +630,6 @@ const PetsDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Calcul du total d'animaux
   const totalPets = (pets.small || 0) + (pets.large || 0);
 
   useEffect(() => {
@@ -416,8 +652,6 @@ const PetsDropdown = ({
         className="w-full bg-white border border-[#969696]/30 text-[#193650] px-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] flex items-center justify-center gap-2 transition-all"
       >
         <MdPets className="text-[#a98c2f]" size={24} />
-
-        {/* Affiche le nombre total d’animaux si > 0 */}
         {totalPets > 0 && (
           <span className="text-sm font-semibold text-[#193650]">
             {totalPets}
@@ -453,7 +687,6 @@ const PetsDropdown = ({
   );
 };
 
-
 const LuggageDropdown = ({
   luggage,
   onChange
@@ -464,7 +697,6 @@ const LuggageDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Calcul du total de bagages
   const totalLuggage =
     (luggage.carryOn || 0) +
     (luggage.holdLuggage || 0) +
@@ -492,8 +724,6 @@ const LuggageDropdown = ({
         className="w-full bg-white border border-[#969696]/30 text-[#193650] px-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] flex items-center justify-center gap-2 transition-all"
       >
         <MdLuggage className="text-[#a98c2f]" size={24} />
-
-        {/* Affiche le total de bagages s’il est supérieur à 0 */}
         {totalLuggage > 0 && (
           <span className="text-sm font-semibold text-[#193650]">
             {totalLuggage}
@@ -543,7 +773,6 @@ const LuggageDropdown = ({
     </div>
   );
 };
-
 
 // =============================================================================
 // COMPOSANTS RÉUTILISABLES
@@ -755,23 +984,30 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
     to: '',
     departureDate: '',
     departureTime: '00:00',
-    passengers: { adults: 0, children: 0, infants: 0 },
+    passengers: { adults: 1, children: 0, infants: 0 },
     pets: { small: 0, large: 0 },
     luggage: { carryOn: 0, holdLuggage: 0, skis: 0, golfBag: 0, others: 0 }
   });
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { submitForm, isSubmitting } = useFormSubmission();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationErrors([]);
-    const result = await submitForm('/api/bookings/one-way', formData);
 
-    if (result.success) {
-      await onSubmit(result);
-    } else {
-      setValidationErrors([result.message]);
+    if (!formData.from || !formData.to || !formData.departureDate) {
+      setValidationErrors(['Please fill all required fields']);
+      return;
     }
+
+    sessionStorage.setItem('bookingData', JSON.stringify({
+      type: 'oneWay',
+      data: formData,
+      timestamp: new Date().toISOString()
+    }));
+
+    router.push('/details');
   };
 
   const handleInputChange = useCallback((field: keyof OneWayFormData, value: any) => {
@@ -802,37 +1038,23 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
         </motion.div>
       )}
 
-      {/* FORMULAIRE */}
       <div className="grid grid-cols-1 md:grid-cols-15 gap-1">
-        {/* From */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
-          <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
-          <input
-            type="text"
-            placeholder="From"
+          <AirportInput
             value={formData.from}
-            onChange={(e) => handleInputChange('from', e.target.value)}
-            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm lg:text-base transition-all"
-            style={{ fontFamily: 'Century Gothic, sans-serif' }}
-            required
+            onChange={(value) => handleInputChange('from', value)}
+            placeholder="From"
           />
         </motion.div>
 
-        {/* To */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
-          <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
-          <input
-            type="text"
-            placeholder="To"
+          <AirportInput
             value={formData.to}
-            onChange={(e) => handleInputChange('to', e.target.value)}
-            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm lg:text-base transition-all"
-            style={{ fontFamily: 'Century Gothic, sans-serif' }}
-            required
+            onChange={(value) => handleInputChange('to', value)}
+            placeholder="To"
           />
         </motion.div>
 
-        {/* Date */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
           <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
           <input
@@ -846,21 +1068,19 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
-        {/* Time */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
           <FiClock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
           <input
             type="time"
             value={formData.departureTime}
             onChange={(e) => handleInputChange('departureTime', e.target.value)}
-            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] text-sm lg:text-base transition-all"
+            className="w-full bg-white border  border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] text-sm lg:text-base transition-all"
             style={{ fontFamily: 'Century Gothic, sans-serif' }}
             required
           />
         </motion.div>
 
         <div className="grid grid-cols-3 sm:grid-cols-3 gap-1 md:col-span-3 ">
-          {/* Passengers */}
           <div>
             <PassengersDropdown
               passengers={formData.passengers}
@@ -868,7 +1088,6 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </div>
 
-          {/* Pets */}
           <div>
             <PetsDropdown
               pets={formData.pets}
@@ -876,7 +1095,6 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </div>
 
-          {/* Luggage */}
           <div>
             <LuggageDropdown
               luggage={formData.luggage}
@@ -885,9 +1103,6 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           </div>
         </div>
 
-
-
-        {/* Bouton BOOK */}
         <motion.button
           whileHover={{ scale: 1.03, backgroundColor: "#a98c2f" }}
           whileTap={{ scale: 0.97 }}
@@ -903,10 +1118,10 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
               />
-              <span>Booking...</span>
+              <span>Search...</span>
             </>
           ) : (
-            <span>BOOK</span>
+            <span>SEARCH</span>
           )}
         </motion.button>
       </div>
@@ -921,7 +1136,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
       to: '',
       date: '',
       time: '00:00',
-      passengers: { adults: 0, children: 0, infants: 0 },
+      passengers: { adults: 1, children: 0, infants: 0 },
       pets: { small: 0, large: 0 },
       luggage: { carryOn: 0, holdLuggage: 0, skis: 0, golfBag: 0, others: 0 }
     },
@@ -930,24 +1145,32 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
       to: '',
       date: '',
       time: '00:00',
-      passengers: { adults: 0, children: 0, infants: 0 },
+      passengers: { adults: 1, children: 0, infants: 0 },
       pets: { small: 0, large: 0 },
       luggage: { carryOn: 0, holdLuggage: 0, skis: 0, golfBag: 0, others: 0 }
     }
   });
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { submitForm, isSubmitting } = useFormSubmission();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationErrors([]);
-    const result = await submitForm('/api/bookings/round-trip', formData);
 
-    if (result.success) {
-      await onSubmit(result);
-    } else {
-      setValidationErrors([result.message]);
+    if (!formData.outbound.from || !formData.outbound.to || !formData.outbound.date ||
+      !formData.return.from || !formData.return.to || !formData.return.date) {
+      setValidationErrors(['Please fill all required fields']);
+      return;
     }
+
+    sessionStorage.setItem('bookingData', JSON.stringify({
+      type: 'roundTrip',
+      data: formData,
+      timestamp: new Date().toISOString()
+    }));
+
+    router.push('/details');
   };
 
   const handleOutboundChange = useCallback((field: keyof typeof formData.outbound, value: any) => {
@@ -994,7 +1217,6 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
         </motion.div>
       )}
 
-      {/* Outbound Flight */}
       <div className="space-y-4">
         <h3
           className="text-white text-base font-medium md:mt-"
@@ -1004,41 +1226,22 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-14 gap-1">
-          {/* From */}
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
-            <FiMapPin
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="From"
+            <AirportInput
               value={formData.outbound.from}
-              onChange={(e) => handleOutboundChange("from", e.target.value)}
-              className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm lg:text-base transition-all"
-              style={{ fontFamily: "Century Gothic, sans-serif" }}
-              required
+              onChange={(value) => handleOutboundChange("from", value)}
+              placeholder="From"
             />
           </motion.div>
 
-          {/* To */}
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
-            <FiMapPin
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="To"
+            <AirportInput
               value={formData.outbound.to}
-              onChange={(e) => handleOutboundChange("to", e.target.value)}
-              className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm lg:text-base transition-all"
-              style={{ fontFamily: "Century Gothic, sans-serif" }}
-              required
+              onChange={(value) => handleOutboundChange("to", value)}
+              placeholder="To"
             />
           </motion.div>
 
-          {/* Date */}
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
             <FiCalendar
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
@@ -1055,7 +1258,6 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          {/* Time */}
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
             <FiClock
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
@@ -1071,7 +1273,6 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          {/* Dropdowns */}
           <div className="grid grid-cols-3 sm:grid-cols-3 gap-1 md:col-span-3 ">
             <div className="w-full">
               <PassengersDropdown
@@ -1099,34 +1300,22 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
         </div>
       </div>
 
-
-      {/* Inbound */}
       <div className="space-y-3">
         <h3 className="text-white text-base font-medium" style={{ fontFamily: 'Century Gothic, sans-serif' }}>Inbound</h3>
         <div className="grid grid-cols-1 md:grid-cols-14 gap-1">
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
-            <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
-            <input
-              type="text"
-              placeholder="From"
+            <AirportInput
               value={formData.return.from || formData.outbound.to}
-              onChange={(e) => handleReturnChange('from', e.target.value)}
-              className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm lg:text-base transition-all"
-              style={{ fontFamily: 'Century Gothic, sans-serif' }}
-              required
+              onChange={(value) => handleReturnChange('from', value)}
+              placeholder="From"
             />
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
-            <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
-            <input
-              type="text"
-              placeholder="To"
+            <AirportInput
               value={formData.return.to || formData.outbound.from}
-              onChange={(e) => handleReturnChange('to', e.target.value)}
-              className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm lg:text-base transition-all"
-              style={{ fontFamily: 'Century Gothic, sans-serif' }}
-              required
+              onChange={(value) => handleReturnChange('to', value)}
+              placeholder="To"
             />
           </motion.div>
 
@@ -1179,7 +1368,6 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
         </div>
       </div>
 
-      {/* Bouton BOOK */}
       <motion.button
         whileHover={{ scale: 1.03, backgroundColor: "#a98c2f" }}
         whileTap={{ scale: 0.97 }}
@@ -1195,10 +1383,10 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
             />
-            <span>Booking...</span>
+            <span>search...</span>
           </>
         ) : (
-          <span>BOOK</span>
+          <span>SEARCH</span>
         )}
       </motion.button>
     </form>
@@ -1211,15 +1399,15 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
     to: '',
     date: '',
     time: '00:00',
-    passengers: { adults: 0, children: 0, infants: 0 },
+    passengers: { adults: 1, children: 0, infants: 0 },
     pets: { small: 0, large: 0 },
     luggage: { carryOn: 0, holdLuggage: 0, skis: 0, golfBag: 0, others: 0 }
   };
 
-  // Par défaut, on initialise avec 2 legs
   const [legs, setLegs] = useState<FlightLeg[]>([emptyLeg, emptyLeg]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { submitForm, isSubmitting } = useFormSubmission();
+  const router = useRouter();
 
   const addLeg = useCallback(() => {
     setLegs(prev => [...prev, { ...emptyLeg }]);
@@ -1246,15 +1434,21 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData: MultiLegFormData = { legs };
-    setValidationErrors([]);
-    const result = await submitForm('/api/bookings/multi-leg', formData);
-
-    if (result.success) {
-      await onSubmit(result);
-    } else {
-      setValidationErrors([result.message]);
+    const hasEmptyFields = legs.some(leg => !leg.from || !leg.to || !leg.date);
+    if (hasEmptyFields) {
+      setValidationErrors(['Please fill all required fields for each leg']);
+      return;
     }
+
+    const formData: MultiLegFormData = { legs };
+
+    sessionStorage.setItem('bookingData', JSON.stringify({
+      type: 'multiLeg',
+      data: formData,
+      timestamp: new Date().toISOString()
+    }));
+
+    router.push('/details');
   };
 
   return (
@@ -1269,7 +1463,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
         </div>
       )}
 
-      {/* Legs */}
       <div className="space-y-4">
         {legs.map((leg, index) => (
           <div key={index} className="space-y-[6px] ">
@@ -1293,41 +1486,22 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-14 gap-1">
-              {/* From */}
               <div className="relative md:col-span-3">
-                <FiMapPin
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  placeholder="From"
+                <AirportInput
                   value={leg.from}
-                  onChange={(e) => updateLeg(index, 'from', e.target.value)}
-                  className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-10 pr-4 py-[18px] focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm transition-all"
-                  style={{ fontFamily: 'Century Gothic, sans-serif' }}
-                  required
+                  onChange={(value) => updateLeg(index, 'from', value)}
+                  placeholder="From"
                 />
               </div>
 
-              {/* To */}
               <div className="relative md:col-span-3">
-                <FiMapPin
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  placeholder="To"
+                <AirportInput
                   value={leg.to}
-                  onChange={(e) => updateLeg(index, 'to', e.target.value)}
-                  className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-10 pr-4 py-[18px] focus:outline-none focus:border-[#a98c2f] placeholder-[#969696] text-sm transition-all"
-                  style={{ fontFamily: 'Century Gothic, sans-serif' }}
-                  required
+                  onChange={(value) => updateLeg(index, 'to', value)}
+                  placeholder="To"
                 />
               </div>
 
-              {/* Date */}
               <div className="relative md:col-span-3">
                 <FiCalendar
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
@@ -1344,7 +1518,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              {/* Time */}
               <div className="relative md:col-span-2">
                 <FiClock
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10"
@@ -1360,7 +1533,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              {/* Passengers / Pets / Luggage */}
               <div className="grid grid-cols-3 gap-1 md:col-span-3">
                 <PassengersDropdown
                   passengers={leg.passengers}
@@ -1381,7 +1553,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
       </div>
 
       <div className="flex justify-between items-center">
-        {/* BOOK Button */}
         <button
           type="submit"
           disabled={isSubmitting}
@@ -1391,14 +1562,13 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
           {isSubmitting ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Booking...</span>
+              <span>search...</span>
             </>
           ) : (
-            <span>BOOK</span>
+            <span>SEARCH</span>
           )}
         </button>
 
-        {/* ADD Leg Button */}
         <button
           type="button"
           onClick={addLeg}
@@ -1411,8 +1581,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
     </form>
   );
 };
-
-
 
 const BookingForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [activeForm, setActiveForm] = useState('oneWay');
@@ -1472,8 +1640,6 @@ const BookingForm: React.FC<FormProps> = ({ onSubmit }) => {
     </motion.div>
   );
 };
-
-
 
 // =============================================================================
 // COMPOSANT PRINCIPAL
@@ -1548,7 +1714,6 @@ export default function Home() {
           background: rgba(169, 140, 47, 0.8);
         }
 
-        /* Styles Swiper personnalisés */
         .advantages-swiper {
           width: 100%;
           height: 100%;
@@ -1575,7 +1740,6 @@ export default function Home() {
 
       <Navbar />
 
-      {/* SECTION HERO */}
       <section className="relative min-h-screen flex flex-col items-center justify-center w-full overflow-hidden" style={{ margin: 0, padding: 0 }}>
         <VideoBackground />
 
@@ -1604,7 +1768,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* FORMULAIRE EN BAS */}
         <div className="relative z-10 w-full px-4 pb-8">
           <div className="container mx-auto max-w-7xl">
             <BookingForm onSubmit={handleFormSubmit} />
@@ -1612,8 +1775,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION ABOUT */}
-      <section id="why-envyjet" className="py-12 lg:py-20 bg-white w-full" style={{ margin: 0 }}>
+      <section id="why-envyjet" className="py-12  lg:py-20 bg-white w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <motion.div
@@ -1695,7 +1857,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION SERVICES */}
       <section
         id="services"
         className="relative py-12 lg:py-20 w-full bg-cover bg-center bg-no-repeat"
@@ -1704,11 +1865,9 @@ export default function Home() {
           backgroundImage: "url('images/service.jpg')",
         }}
       >
-        {/* Overlay sombre pour améliorer la lisibilité */}
         <div className="absolute inset-0 bg-black/40"></div>
 
         <div className="relative z-10 container mx-auto px-4 lg:px-6 max-w-7xl">
-          {/* Titre et sous-titre */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1730,7 +1889,6 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* Cartes de services */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {SERVICES_DATA.map((service, index) => (
               <motion.div
@@ -1774,8 +1932,6 @@ export default function Home() {
         </div>
       </section>
 
-
-      {/* SECTION AVANTAGES */}
       <section className="py-12 lg:py-20 bg-white w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
           <motion.div
@@ -1793,7 +1949,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION FAQ */}
       <section className="py-12 lg:py-20 bg-[#f8f8f8] w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 max-w-full">
           <motion.div
@@ -1821,7 +1976,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION NEWSLETTER */}
       <section className="py-12 lg:py-20 bg-gradient-to-br from-[#1a3a57] to-[#2d5a82] w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 text-center max-w-full">
           <motion.div
@@ -1875,4 +2029,4 @@ export default function Home() {
       <Footer />
     </div>
   );
-} 
+}
