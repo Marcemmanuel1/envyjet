@@ -336,7 +336,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 </a>
                 <a
                   href="/join"
-                  className="block text-center bg-[#d3a936] text-white py-3 font-medium transition-all duration-300 hover:bg-[#a98c2f]"
+                  className="block text-center bg-white text-white py-3 font-medium transition-all duration-300 hover:bg-[#a98c2f]"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Join
