@@ -18,6 +18,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Gestion du scroll pour l'effet de transparence
   useEffect(() => {
     if (!transparent) {
       setIsScrolled(true);
@@ -32,6 +33,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [transparent]);
 
+  // Blocage du scroll quand le menu mobile est ouvert
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };
@@ -62,13 +64,14 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
         style={{ fontFamily: 'Century Gothic, sans-serif' }}
       >
         <div className="container mx-auto px-4 sm:px-6 flex justify-between items-center">
-          {/* Logo et bouton menu mobile côte à côte */}
+          {/* Logo et menu mobile */}
           <div className="flex items-center space-x-3 sm:space-x-4">
-            {/* Menu Mobile Button - à côté du logo */}
+            {/* Bouton menu mobile */}
             <motion.button
               whileTap={{ scale: 0.95 }}
               className="lg:hidden relative z-60"
               onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open menu"
             >
               <FiMenu
                 size={24}
@@ -91,7 +94,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             </motion.a>
           </div>
 
-          {/* Menu Desktop */}
+          {/* Navigation desktop */}
           <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
             {menuItems.map((item) => (
               <motion.a
@@ -107,7 +110,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
               </motion.a>
             ))}
 
-            {/* Section Login/Join */}
+            {/* Section authentification */}
             <div className="flex items-center space-x-3 ml-4">
               <motion.a
                 href="/login"
@@ -127,9 +130,9 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
               </motion.a>
             </div>
 
-            {/* Icônes supplémentaires */}
+            {/* Actions et contacts */}
             <div className="flex items-center space-x-4 ml-4 border-l border-gray-300 pl-4">
-              {/* Numéro de téléphone */}
+              {/* Téléphone */}
               <motion.a
                 href="tel:+2250759102503"
                 whileHover={{ scale: 1.05 }}
@@ -140,7 +143,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 <span className="font-medium text-sm hidden xl:block">+225 0759102503</span>
               </motion.a>
 
-              {/* Icône WhatsApp */}
+              {/* WhatsApp */}
               <motion.a
                 href="https://wa.me/+2250759102503"
                 target="_blank"
@@ -154,7 +157,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 <FaWhatsapp size={20} />
               </motion.a>
 
-              {/* Icône Globe pour traduction */}
+              {/* Sélecteur de langue */}
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
@@ -167,9 +170,8 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             </div>
           </div>
 
-          {/* Version Mobile */}
+          {/* Actions mobiles */}
           <div className="flex lg:hidden items-center space-x-3">
-            {/* Numéro de téléphone (icône seulement) */}
             <motion.a
               href="tel:+2250759102503"
               whileHover={{ scale: 1.1 }}
@@ -180,7 +182,6 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
               <FiPhone size={18} />
             </motion.a>
 
-            {/* Icône WhatsApp */}
             <motion.a
               href="https://wa.me/+2250759102503"
               target="_blank"
@@ -194,7 +195,6 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
               <FaWhatsapp size={18} />
             </motion.a>
 
-            {/* Icône Globe pour traduction */}
             <motion.button
               whileHover={{ scale: 1.1, rotate: 15 }}
               whileTap={{ scale: 0.9 }}
@@ -208,7 +208,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
         </div>
       </motion.nav>
 
-      {/* Overlay */}
+      {/* Overlay du menu mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -221,7 +221,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
         )}
       </AnimatePresence>
 
-      {/* Menu Mobile */}
+      {/* Menu mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -246,12 +246,12 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             <div className="flex flex-col h-full p-6">
               {/* En-tête du menu */}
               <div className="flex justify-between items-center mb-8">
-
                 <motion.button
                   onClick={() => setIsMobileMenuOpen(false)}
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   className="text-white/80 hover:text-white p-2"
+                  aria-label="Close menu"
                 >
                   <FiX size={20} />
                 </motion.button>
@@ -263,7 +263,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 />
               </div>
 
-              {/* Items du menu */}
+              {/* Navigation mobile */}
               <div className="flex flex-col space-y-1">
                 {menuItems.map((item, index) => (
                   <motion.a
@@ -284,7 +284,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 ))}
               </div>
 
-              {/* Section des icônes dans le menu mobile */}
+              {/* Contacts mobiles */}
               <div className="py-6 border-b border-white/10">
                 <div className="flex justify-center space-x-6">
                   <motion.a
@@ -325,7 +325,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 </motion.a>
               </div>
 
-              {/* Boutons d'action */}
+              {/* Actions mobiles */}
               <div className="mt-auto pt-6 border-t border-white/10">
                 <a
                   href="/login"

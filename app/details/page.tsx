@@ -7,7 +7,8 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 /**
- * Interface pour typer les données du formulaire
+ * Interface pour typer les données du formulaire de contact
+ * Contient toutes les informations personnelles du client
  */
 interface FormData {
   title: string;
@@ -21,6 +22,7 @@ interface FormData {
 
 /**
  * Interface pour les données d'authentification
+ * Utilisée pour le formulaire de connexion existant
  */
 interface AuthData {
   email: string;
@@ -28,7 +30,8 @@ interface AuthData {
 }
 
 /**
- * Interface pour les données de réservation
+ * Interface pour les données de réservation stockées en session
+ * Représente la sélection de vol faite par l'utilisateur
  */
 interface BookingData {
   type: 'oneWay' | 'roundTrip' | 'multiLeg';
@@ -37,7 +40,8 @@ interface BookingData {
 }
 
 /**
- * Interface pour les informations d'aéroport extraites
+ * Interface pour structurer les informations d'aéroport
+ * Utilisée pour afficher les détails des aéroports de départ et d'arrivée
  */
 interface AirportInfo {
   code: string;
@@ -46,17 +50,19 @@ interface AirportInfo {
 }
 
 /**
- * Fonction pour extraire toutes les informations d'un aéroport
+ * Parse une chaîne d'aéroport pour extraire le code, nom et ville
  * Format attendu: "LHR - London Heathrow Airport, London"
+ * @param airportString - Chaîne brute de l'aéroport
+ * @returns Objet AirportInfo structuré
  */
 const extractAirportInfo = (airportString: string): AirportInfo => {
   if (!airportString) return { code: '', name: '', city: '' };
 
-  // Séparer par le tiret
+  // Séparer le code IATA du reste
   const parts = airportString.split('-');
   const code = parts[0]?.trim() || '';
 
-  // Séparer le reste par la virgule pour obtenir le nom et la ville
+  // Extraire le nom et la ville depuis la partie restante
   const remaining = parts[1]?.trim() || '';
   const cityParts = remaining.split(',');
 
@@ -67,7 +73,9 @@ const extractAirportInfo = (airportString: string): AirportInfo => {
 };
 
 /**
- * Fonction pour obtenir le label du type de vol
+ * Convertit le type technique de vol en libellé utilisateur
+ * @param type - Type technique du vol
+ * @returns Libellé formaté pour l'affichage
  */
 const getFlightTypeLabel = (type: 'oneWay' | 'roundTrip' | 'multiLeg'): string => {
   const labels = {
@@ -79,18 +87,22 @@ const getFlightTypeLabel = (type: 'oneWay' | 'roundTrip' | 'multiLeg'): string =
 };
 
 /**
- * Composant principal pour la page de détails de demande de vol
+ * Composant principal pour la page de finalisation de réservation
+ * Gère à la fois l'authentification et la saisie des informations personnelles
  */
 export default function Details() {
   const router = useRouter();
+
+  // États de contrôle d'accès et de chargement
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+
+  // États des données formulaire
   const [authData, setAuthData] = useState<AuthData>({
     email: '',
     password: ''
   });
-
   const [formData, setFormData] = useState<FormData>({
     title: "",
     firstName: "",
@@ -101,6 +113,7 @@ export default function Details() {
     acceptTerms: false
   });
 
+  // États pour la localisation et les données de vol
   const [country, setCountry] = useState<string>("ci");
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [departureInfo, setDepartureInfo] = useState<AirportInfo>({
@@ -119,15 +132,15 @@ export default function Details() {
   const [passengers, setPassengers] = useState<number>(0);
 
   /**
-   * SÉCURITÉ: Vérifier l'accès à la page
-   * Redirige vers la page d'accueil si pas de données de réservation
+   * VÉRIFICATION D'ACCÈS : S'assure que l'utilisateur arrive bien d'un processus de réservation
+   * Effectue plusieurs contrôles de sécurité avant d'autoriser l'accès à la page
    */
   useEffect(() => {
     const checkAccess = () => {
       const storedData = sessionStorage.getItem('bookingData');
 
+      // Redirection immédiate si pas de données de réservation
       if (!storedData) {
-        // Pas de données de réservation = redirection
         console.warn('Accès non autorisé: aucune donnée de réservation trouvée');
         router.push('/');
         return;
@@ -136,10 +149,10 @@ export default function Details() {
       try {
         const parsed: BookingData = JSON.parse(storedData);
 
-        // Vérifier que les données sont valides et récentes (moins de 1 heure)
+        // Vérification de la fraîcheur des données (1 heure max)
         const timestamp = new Date(parsed.timestamp).getTime();
         const now = new Date().getTime();
-        const oneHour = 60 * 60 * 1000; // 1 heure en millisecondes
+        const oneHour = 60 * 60 * 1000;
 
         if (now - timestamp > oneHour) {
           console.warn('Accès non autorisé: données de réservation expirées');
@@ -148,7 +161,7 @@ export default function Details() {
           return;
         }
 
-        // Vérifier que les données essentielles sont présentes
+        // Validation structurelle des données selon le type de vol
         const hasValidData =
           parsed.type &&
           parsed.data &&
@@ -165,13 +178,13 @@ export default function Details() {
           return;
         }
 
-        // Tout est OK, autoriser l'accès
+        // Accès autorisé - initialisation des données d'affichage
         setBookingData(parsed);
         setFlightType(getFlightTypeLabel(parsed.type));
         setIsAuthorized(true);
         setIsLoading(false);
 
-        // Extraire les informations selon le type de réservation
+        // Extraction des informations de vol selon le type de réservation
         if (parsed.type === 'oneWay') {
           const { from, to, departureDate, departureTime, passengers: pass } = parsed.data;
           setDepartureInfo(extractAirportInfo(from));
@@ -209,10 +222,11 @@ export default function Details() {
   }, [router]);
 
   /**
-   * Effet pour détecter automatiquement le pays de l'utilisateur
+   * DÉTECTION AUTOMATIQUE DU PAYS : Récupère le pays de l'utilisateur via son IP
+   * Utilisé pour pré-remplir le sélecteur de numéro de téléphone
    */
   useEffect(() => {
-    if (!isAuthorized) return; // Ne charger que si autorisé
+    if (!isAuthorized) return;
 
     const detectCountry = async (): Promise<void> => {
       try {
@@ -228,6 +242,7 @@ export default function Details() {
           setCountry(data.country_code.toLowerCase());
         }
       } catch (error) {
+        // Log silencieux en production, détaillé en développement
         if (process.env.NODE_ENV === 'development') {
           console.warn("Détection du pays échouée:", error);
         }
@@ -237,6 +252,10 @@ export default function Details() {
     detectCountry();
   }, [isAuthorized]);
 
+  /**
+   * Gestionnaire générique pour les champs de formulaire
+   * Supporte les inputs textuels, emails, selects et checkboxes
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -247,6 +266,10 @@ export default function Details() {
     }));
   };
 
+  /**
+   * Gestionnaire spécialisé pour le champ téléphone
+   * Utilise le composant PhoneInput qui a sa propre API
+   */
   const handlePhoneChange = (value: string): void => {
     setFormData(prevState => ({
       ...prevState,
@@ -254,6 +277,9 @@ export default function Details() {
     }));
   };
 
+  /**
+   * Gestionnaire pour le formulaire d'authentification
+   */
   const handleAuthInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setAuthData(prev => ({
@@ -262,23 +288,29 @@ export default function Details() {
     }));
   };
 
+  /**
+   * Soumission du formulaire d'authentification
+   * TODO: Intégration avec l'API d'authentification
+   */
   const handleAuthSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
 
-    // TODO: Implémenter la logique de connexion
+    // TODO: Implémenter la logique de connexion réelle
     console.log('Login:', authData);
     // Exemple: await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(authData) });
 
-    // Après connexion réussie, fermer le formulaire d'auth
+    // Simulation de connexion réussie
     setShowAuth(false);
-
-    // Réinitialiser les données d'authentification
     setAuthData({
       email: '',
       password: ''
     });
   };
 
+  /**
+   * Soumission du formulaire principal de réservation
+   * Valide les données, envoie la réservation et redirige
+   */
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
 
@@ -287,6 +319,7 @@ export default function Details() {
       return;
     }
 
+    // Construction de l'objet de réservation complet
     const completeBooking = {
       ...formData,
       bookingDetails: bookingData,
@@ -295,25 +328,26 @@ export default function Details() {
 
     console.log("Réservation complète:", completeBooking);
 
-    // Nettoyer le sessionStorage après soumission réussie
+    // Nettoyage des données temporaires
     sessionStorage.removeItem('bookingData');
 
-    // Rediriger vers une page de confirmation
+    // TODO: Redirection vers page de confirmation
     // router.push('/confirmation');
   };
 
   /**
-   * Gestionnaire pour annuler la réservation
-   * Supprime les données et redirige immédiatement vers la page d'accueil
+   * Annulation de la réservation en cours
+   * Supprime les données et redirige vers l'accueil sans confirmation
    */
   const handleCancel = (): void => {
-    // Supprimer les données de réservation sans confirmation
     sessionStorage.removeItem('bookingData');
-
-    // Rediriger immédiatement vers la page d'accueil
     router.push('/');
   };
 
+  /**
+   * Validation globale du formulaire
+   * Vérifie que tous les champs obligatoires sont remplis et valides
+   */
   const isFormValid: boolean = Boolean(
     formData.firstName?.trim() &&
     formData.lastName?.trim() &&
@@ -322,7 +356,13 @@ export default function Details() {
     formData.acceptTerms
   );
 
-  // Afficher un loader pendant la vérification
+  // Styles réutilisables pour maintenir la cohérence UI
+  const inputStyles = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const inputStyletitle = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none";
+  const labelStyles = "block text-sm font-medium text-gray-700 mb-2";
+  const checkboxStyles = "mt-1 w-4 h-4 text-blue-400 border-gray-300 focus:ring-blue-500";
+
+  // État de chargement pendant la vérification d'accès
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -334,15 +374,10 @@ export default function Details() {
     );
   }
 
-  // Si pas autorisé, ne rien afficher
+  // Rendu nul si accès non autorisé (redirection en cours)
   if (!isAuthorized) {
     return null;
   }
-
-  const inputStyles = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500";
-  const inputStyletitle = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none";
-  const labelStyles = "block text-sm font-medium text-gray-700 mb-2";
-  const checkboxStyles = "mt-1 w-4 h-4 text-blue-400 border-gray-300 focus:ring-blue-500";
 
   return (
     <div
@@ -351,14 +386,15 @@ export default function Details() {
     >
       <Navbar />
 
+      {/* Contenu principal avec grille responsive */}
       <div className="min-h-screen pt-26 pb-8">
         <div className="container mx-auto px-4">
-          <div className="grid  grid-cols-1 lg:grid-cols-2 max-w-6xl mx-auto gap-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 max-w-6xl mx-auto gap-0">
 
-            {/* Section Formulaire - Contient soit le formulaire principal soit le formulaire d'authentification */}
+            {/* COLONNE GAUCHE : Formulaire dynamique (auth ou details) */}
             <section className="bg-white min-h-[630px] md:h-[630px] shadow-lg p-8">
               {showAuth ? (
-                // Formulaire de connexion uniquement
+                // FORMULAIRE D'AUTHENTIFICATION
                 <>
                   <div className="flex justify-between items-center mb-2">
                     <h1 className="text-3xl font-bold text-gray-800">
@@ -414,7 +450,6 @@ export default function Details() {
                       />
                     </div>
 
-                    {/* Bouton de soumission */}
                     <button
                       type="submit"
                       className="w-full py-3 px-4 bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold transition duration-200 mt-6"
@@ -424,13 +459,12 @@ export default function Details() {
                   </form>
                 </>
               ) : (
-                // Formulaire principal des détails
+                // FORMULAIRE PRINCIPAL DES DÉTAILS CLIENT
                 <>
                   <h1 className="text-3xl font-bold text-gray-800 mb-3 ">
                     Enter your details
                   </h1>
 
-                  {/* Texte de connexion */}
                   <p className=" text-sm text-gray-600 mb-6">
                     Already have an account?{' '}
                     <button
@@ -443,6 +477,7 @@ export default function Details() {
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                    {/* Grille Titre + Prénom */}
                     <div className="grid grid-cols-4 gap-1">
                       <div className="col-span-1">
                         <label htmlFor="title" className={labelStyles}>
@@ -481,6 +516,7 @@ export default function Details() {
                       </div>
                     </div>
 
+                    {/* Champ Nom */}
                     <div>
                       <label htmlFor="lastName" className={labelStyles}>
                         Last Name *
@@ -497,6 +533,7 @@ export default function Details() {
                       />
                     </div>
 
+                    {/* Champ Email */}
                     <div>
                       <label htmlFor="email" className={labelStyles}>
                         Email Address *
@@ -513,6 +550,7 @@ export default function Details() {
                       />
                     </div>
 
+                    {/* Champ Téléphone avec sélecteur de pays */}
                     <div>
                       <label htmlFor="phone" className={labelStyles}>
                         Phone Number *
@@ -538,6 +576,7 @@ export default function Details() {
                       />
                     </div>
 
+                    {/* Checkboxes options et CGU */}
                     <div className="space-y-4">
                       <div className="flex items-start space-x-3">
                         <input
@@ -570,7 +609,7 @@ export default function Details() {
                       </div>
                     </div>
 
-                    {/* Boutons de soumission et d'annulation */}
+                    {/* Actions principales */}
                     <div className="flex gap-3">
                       <button
                         type="button"
@@ -599,22 +638,22 @@ export default function Details() {
               )}
             </section>
 
-            {/* Section Image avec overlay de texte */}
+            {/* COLONNE DROITE : Récapitulatif visuel du vol */}
             <section
               className="relative shadow-lg min-h-[600px] hidden lg:block bg-[#1a1a1a]"
             >
-              {/* Overlay de texte avec fond noir */}
+              {/* Overlay de contenu structuré */}
               <div className="absolute w-full flex flex-col h-full px-8 py-6">
 
-                {/* En-tête avec trajet */}
+                {/* En-tête avec trajet visuel */}
                 <div className="flex items-center justify-between mb-8 px-4 relative">
-                  {/* Départ */}
+                  {/* Aéroport de départ */}
                   <div className="text-center relative top-[38px]">
                     <p className="text-xl text-white font-bold">{departureInfo.code}</p>
                     <p className="text-sm text-gray-400">{departureInfo.city}</p>
                   </div>
 
-                  {/* Ligne courbée avec avion */}
+                  {/* Représentation graphique du trajet */}
                   <div className="flex-1 relative mx-4">
                     <svg
                       width="100%"
@@ -631,8 +670,7 @@ export default function Details() {
                       />
                     </svg>
 
-
-                    {/* Avion au centre */}
+                    {/* Icône avion positionnée au centre de la courbe */}
                     <div className="absolute top-[1px] left-1/2 transform -translate-x-1/2 rotate-90">
                       <svg
                         width="30"
@@ -645,20 +683,20 @@ export default function Details() {
                       </svg>
                     </div>
 
-                    {/* Type de vol centré sous la courbe */}
+                    {/* Type de vol affiché sous la courbe */}
                     <div className="absolute top-[40px] left-1/2 transform -translate-x-1/2 text-center">
                       <p className="text-xs text-white font-medium tracking-widest">{flightType}</p>
                     </div>
                   </div>
 
-                  {/* Arrivée */}
+                  {/* Aéroport d'arrivée */}
                   <div className="text-center relative top-[38px]">
                     <p className="text-xl text-white font-bold">{arrivalInfo.code}</p>
                     <p className="text-sm text-gray-400">{arrivalInfo.city}</p>
                   </div>
                 </div>
 
-                {/* Informations additionnelles de vol */}
+                {/* Informations détaillées du vol */}
                 {flightDate && flightTime && (
                   <div className="text-center mb-4">
                     <p className="text-white text-sm">
@@ -677,7 +715,7 @@ export default function Details() {
                   </div>
                 )}
 
-                {/* Informations de cotation - Cercle */}
+                {/* Carte de cotation de l'opérateur */}
                 <div className="flex justify-center mb-4">
                   <div className="bg-gray-200 text-black rounded-full w-80 h-80 flex flex-col justify-center items-center p-8">
                     <p className="text-sm text-gray-600 mb-2">Quote 1 of 3</p>
@@ -708,7 +746,7 @@ export default function Details() {
                   </div>
                 </div>
 
-                {/* Texte en bas */}
+                {/* Message informatif */}
                 <div className="mt-auto px-8">
                   <p className="text-white text-center text-sm leading-relaxed">
                     EnvyJet will share complete operator and aircraft details, along with authentic images of the exact aircraft you'll be flying in.

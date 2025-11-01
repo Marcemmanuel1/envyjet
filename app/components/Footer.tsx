@@ -19,8 +19,8 @@ const Footer = () => {
       title: 'Services',
       links: [
         { label: 'Private Jet Charter', href: '/services/charter' },
-        { label: 'Shared Flights', href: '/services/shared' },
-        { label: 'Empty Legs', href: '/services/empty-legs' },
+        { label: 'Shared Flights', href: '/shared-flights' },
+        { label: 'Empty Legs', href: '/empty-legs' },
         { label: 'Nectar Program', href: '/nectar' },
         { label: 'Group Travel', href: '/services/group' }
       ]
@@ -65,6 +65,7 @@ const Footer = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
               className="mb-6"
             >
               <img
@@ -103,6 +104,7 @@ const Footer = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
             >
               <h3 className="font-medium text-lg mb-6 text-white">{section.title}</h3>
               <ul className="space-y-3">
@@ -132,6 +134,7 @@ const Footer = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
               className="text-white/60 text-sm"
             >
               © {currentYear} EnvyJet. All rights reserved.
@@ -142,6 +145,7 @@ const Footer = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
               className="flex space-x-4"
             >
               {socialLinks.map((social) => (
@@ -162,6 +166,7 @@ const Footer = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
               className="flex space-x-6 text-sm"
             >
               <a href="/privacy" className="text-white/60 hover:text-[#D08A10] transition-colors duration-300">

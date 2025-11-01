@@ -15,10 +15,10 @@ interface Flight {
   capacity: number;
   price: number;
   image: string;
-  codeFrom: string; // Code de l'aéroport de départ
-  codeTo: string;   // Code de l'aéroport d'arrivée
-  cityFrom: string; // Ville de départ
-  cityTo: string;   // Ville d'arrivée
+  codeFrom: string;
+  codeTo: string;
+  cityFrom: string;
+  cityTo: string;
 }
 
 interface FlightDetailsModalProps {
@@ -33,26 +33,32 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
   onNext
 }) => {
   const router = useRouter();
+
+  // États pour la gestion des passagers
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
+
+  // États pour la gestion des animaux
   const [smallPets, setSmallPets] = useState(0);
   const [largePets, setLargePets] = useState(0);
+
+  // États pour la gestion des bagages
   const [cabinBags, setCabinBags] = useState(0);
   const [checkedBags, setCheckedBags] = useState(0);
   const [skis, setSkis] = useState(0);
   const [golfBags, setGolfBags] = useState(0);
   const [otherBags, setOtherBags] = useState(0);
 
-  // États pour gérer les dropdowns
+  // Gestion des dropdowns ouverts
   const [openDropdown, setOpenDropdown] = useState<'passengers' | 'pets' | 'baggage' | null>(null);
 
-  // Refs pour détecter les clics extérieurs
+  // Références pour la détection des clics extérieurs
   const passengersRef = useRef<HTMLDivElement>(null);
   const petsRef = useRef<HTMLDivElement>(null);
   const baggageRef = useRef<HTMLDivElement>(null);
 
-  // Extraire la date et l'heure
+  // Extraction de la date et heure depuis la chaîne de départ
   const extractDateTime = (departureString: string) => {
     const parts = departureString.split(' ');
     if (parts.length >= 4) {
@@ -75,12 +81,14 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
   };
 
   const { date, time } = extractDateTime(flight.departure);
+
+  // Calculs des coûts et totaux
   const occupiedSeats = adults + children;
   const pricePerSeat = flight.price;
   const pricePerInfant = 7500;
   const totalCost = (adults * pricePerSeat) + (children * pricePerSeat) + (infants * pricePerInfant);
 
-  // Gérer les clics extérieurs pour fermer les dropdowns
+  // Fermeture des dropdowns au clic extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -99,39 +107,30 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Gestion de la soumission vers la page de détails
   const handleNextClick = () => {
     try {
-      // Créer l'objet bookingData avec les informations séparées
       const bookingData = {
         type: 'oneWay' as const,
         data: {
-          // Informations de vol de base (gardées pour compatibilité)
           from: `${flight.codeFrom} - ${flight.cityFrom}`,
           to: `${flight.codeTo} - ${flight.cityTo}`,
           departureDate: date,
           departureTime: time,
-
-          // Nouvelles informations séparées pour l'affichage dans Details
           codeFrom: flight.codeFrom,
           codeTo: flight.codeTo,
           cityFrom: flight.cityFrom,
           cityTo: flight.cityTo,
-
-          // Informations sur les passagers
           passengers: {
             adults: adults,
             children: children,
             infants: infants
           },
-
-          // Informations supplémentaires
           aircraft: flight.aircraft,
           type: flight.type,
           capacity: flight.capacity,
           price: flight.price,
           totalCost: totalCost,
-
-          // Animaux et bagages
           pets: {
             small: smallPets,
             large: largePets
@@ -147,15 +146,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
         timestamp: new Date().toISOString()
       };
 
-      console.log('Données de réservation sauvegardées:', bookingData);
-
-      // Stocker avec la clé correcte pour la page Details
       sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
-
-      // Vérification
-      const stored = sessionStorage.getItem('bookingData');
-      console.log('Vérification du stockage:', stored ? JSON.parse(stored) : 'Aucune donnée');
-
       onClose();
       router.push('/details');
 
@@ -165,6 +156,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
     }
   };
 
+  // Composant Counter réutilisable
   const Counter = ({
     value,
     onIncrement,
@@ -194,6 +186,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
     </div>
   );
 
+  // Composant BaggageItem pour les types de bagages
   const BaggageItem = ({
     label,
     value,
@@ -215,6 +208,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
     </div>
   );
 
+  // Totaux pour l'affichage dans les boutons
   const totalPassengers = adults + children + infants;
   const totalPets = smallPets + largePets;
   const totalBaggage = cabinBags + checkedBags + skis + golfBags + otherBags;
@@ -222,7 +216,8 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/75 bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white z-10 max-w-6xl w-full h-[95vh] overflow-y-auto">
-        {/* Header */}
+
+        {/* En-tête de la modale */}
         <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-[1001]">
           <h2 className="text-2xl font-bold text-gray-800">Flight Details</h2>
           <button
@@ -235,9 +230,11 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
 
         <div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
-            {/* Colonne de gauche - Détails du vol et options */}
+
+            {/* Colonne gauche - Informations et options */}
             <div className="space-y-6">
-              {/* Détails du vol */}
+
+              {/* Informations du vol */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800">Flight Information</h3>
                 <div className="space-y-2 text-sm">
@@ -251,9 +248,10 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
                 </div>
               </div>
 
-              {/* Sections avec dropdowns */}
+              {/* Sections de configuration */}
               <div className="grid grid-cols-3 gap-3">
-                {/* Section Passagers */}
+
+                {/* Passagers */}
                 <div className="border border-gray-200 relative" ref={passengersRef}>
                   <button
                     onClick={() => setOpenDropdown(openDropdown === 'passengers' ? null : 'passengers')}
@@ -311,7 +309,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
                   )}
                 </div>
 
-                {/* Section Animaux */}
+                {/* Animaux */}
                 <div className="border border-gray-200 relative" ref={petsRef}>
                   <button
                     onClick={() => setOpenDropdown(openDropdown === 'pets' ? null : 'pets')}
@@ -358,7 +356,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
                   )}
                 </div>
 
-                {/* Section Bagages */}
+                {/* Bagages */}
                 <div className="border border-gray-200 relative" ref={baggageRef}>
                   <button
                     onClick={() => setOpenDropdown(openDropdown === 'baggage' ? null : 'baggage')}
@@ -418,7 +416,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
 
             </div>
 
-            {/* Colonne de droite - Résumé des frais */}
+            {/* Colonne droite - Récapitulatif des frais */}
             <div className="bg-gray-50 p-6 rounded-lg space-y-6">
               <h3 className="text-2xl  text-[#b8922e] ">FEES SUMMARY</h3>
 

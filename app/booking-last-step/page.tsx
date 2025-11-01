@@ -3,7 +3,9 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
 /**
- * Page de remerciement après soumission du formulaire
+ * Composant de page de remerciement affiché après la soumission réussie
+ * du formulaire de contact. Cette page confirme la réception de la demande
+ * et fournit les prochaines étapes au client.
  */
 export default function ThankYou() {
   return (
@@ -13,12 +15,14 @@ export default function ThankYou() {
     >
       <Navbar />
 
+      {/* Contenu principal centré verticalement */}
       <div className="min-h-screen pt-26 pb-8 flex items-center justify-center">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            {/* Carte de remerciement */}
-            <div className="bg-white shadow-2xl  p-8 md:p-12 text-center">
-              {/* Icône de confirmation */}
+            {/* Carte de remerciement avec ombre portée pour mise en valeur */}
+            <div className="bg-white shadow-2xl p-8 md:p-12 text-center">
+
+              {/* Indicateur visuel de succès - icône de validation */}
               <div className="mb-8">
                 <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                   <svg
@@ -38,27 +42,28 @@ export default function ThankYou() {
                 </div>
               </div>
 
-              {/* Titre principal */}
-              <h1 className="text-3xl md:text-4xl font-bold text-[##d3a936] mb-6">
+              {/* Titre principal de confirmation */}
+              <h1 className="text-3xl md:text-4xl font-bold text-[#d3a936] mb-6">
                 Thank You for Contacting EnvyJet
               </h1>
 
-              {/* Message principal */}
+              {/* Message détaillant le processus de suivi */}
               <div className="max-w-2xl mx-auto">
                 <p className="text-xl md:text-2xl text-gray-600 leading-relaxed mb-8">
                   You will soon be assigned a client manager who will promptly
                   contact you to better understand your needs.
                 </p>
 
-                {/* Contact d'urgence */}
+                {/* Section des contacts urgents - séparée visuellement */}
                 <div className="border-t border-gray-200 pt-8">
                   <p className="text-gray-600 mb-4">
                     For urgent matters, you can reach us at:
                   </p>
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    {/* Lien téléphone avec icône */}
                     <a
-                      href="tel:+1234567890"
-                      className="inline-flex items-center text-[#d3a936] hover:text-[#a98c2f] font-semibold"
+                      href="tel:+2250759102503"
+                      className="inline-flex items-center text-[#d3a936] hover:text-[#a98c2f] font-semibold transition-colors"
                     >
                       <svg
                         className="w-5 h-5 mr-2"
@@ -76,9 +81,11 @@ export default function ThankYou() {
                       </svg>
                       +225 07 59 10 25 03
                     </a>
+
+                    {/* Lien email avec icône */}
                     <a
                       href="mailto:contact@envyjet.com"
-                      className="inline-flex items-center text-[#d3a936] hover:text-[#a98c2f] font-semibold"
+                      className="inline-flex items-center text-[#d3a936] hover:text-[#a98c2f] font-semibold transition-colors"
                     >
                       <svg
                         className="w-5 h-5 mr-2"
@@ -99,11 +106,11 @@ export default function ThankYou() {
                   </div>
                 </div>
 
-                {/* Bouton de retour à l'accueil */}
+                {/* Call-to-action principal pour retour à l'accueil */}
                 <div className="mt-8">
                   <a
                     href="/"
-                    className="inline-block bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold py-3 px-8 transition duration-200"
+                    className="inline-block bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold py-3 px-8 transition duration-200 transform hover:scale-105"
                   >
                     Return to Homepage
                   </a>

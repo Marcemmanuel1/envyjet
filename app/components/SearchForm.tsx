@@ -32,17 +32,20 @@ const SearchForm: React.FC<SearchFormProps> = ({
   initialDate = '',
   initialPassengers = 1
 }) => {
+  // États pour les champs de recherche
   const [passengers, setPassengers] = useState(initialPassengers);
   const [searchFrom, setSearchFrom] = useState(initialFrom);
   const [searchTo, setSearchTo] = useState(initialTo);
   const [searchDate, setSearchDate] = useState(initialDate);
+
+  // États pour la gestion des aéroports et suggestions
   const [airports, setAirports] = useState<Airport[]>([]);
   const [filteredFromAirports, setFilteredFromAirports] = useState<Airport[]>([]);
   const [filteredToAirports, setFilteredToAirports] = useState<Airport[]>([]);
   const [showFromSuggestions, setShowFromSuggestions] = useState(false);
   const [showToSuggestions, setShowToSuggestions] = useState(false);
 
-  // Charger les aéroports depuis le fichier JSON
+  // Chargement initial de la base de données des aéroports
   useEffect(() => {
     const loadAirports = async () => {
       try {
@@ -50,58 +53,62 @@ const SearchForm: React.FC<SearchFormProps> = ({
         const data = await response.json();
         setAirports(data);
       } catch (error) {
-        console.error('Error loading airports:', error);
+        console.error('Erreur lors du chargement des aéroports:', error);
       }
     };
 
     loadAirports();
   }, []);
 
-  // Filtrer les aéroports pour la recherche "From"
+  // Filtrage des aéroports pour le champ "From"
   useEffect(() => {
-    if (searchFrom) {
+    if (searchFrom.trim()) {
+      const searchTerm = searchFrom.toLowerCase();
       const filtered = airports.filter(airport =>
-        (airport?.iata_code && airport.iata_code.toLowerCase().includes(searchFrom.toLowerCase())) ||
-        (airport?.icao_code && airport.icao_code.toLowerCase().includes(searchFrom.toLowerCase())) ||
-        (airport?.name && airport.name.toLowerCase().includes(searchFrom.toLowerCase())) ||
-        (airport?.municipality && airport.municipality.toLowerCase().includes(searchFrom.toLowerCase()))
+        (airport.iata_code?.toLowerCase().includes(searchTerm)) ||
+        (airport.icao_code?.toLowerCase().includes(searchTerm)) ||
+        (airport.name?.toLowerCase().includes(searchTerm)) ||
+        (airport.municipality?.toLowerCase().includes(searchTerm))
       ).slice(0, 8);
+
       setFilteredFromAirports(filtered);
-      setShowFromSuggestions(true);
+      setShowFromSuggestions(filtered.length > 0);
     } else {
       setFilteredFromAirports([]);
       setShowFromSuggestions(false);
     }
   }, [searchFrom, airports]);
 
-  // Filtrer les aéroports pour la recherche "To"
+  // Filtrage des aéroports pour le champ "To"
   useEffect(() => {
-    if (searchTo) {
+    if (searchTo.trim()) {
+      const searchTerm = searchTo.toLowerCase();
       const filtered = airports.filter(airport =>
-        (airport?.iata_code && airport.iata_code.toLowerCase().includes(searchTo.toLowerCase())) ||
-        (airport?.icao_code && airport.icao_code.toLowerCase().includes(searchTo.toLowerCase())) ||
-        (airport?.name && airport.name.toLowerCase().includes(searchTo.toLowerCase())) ||
-        (airport?.municipality && airport.municipality.toLowerCase().includes(searchTo.toLowerCase()))
+        (airport.iata_code?.toLowerCase().includes(searchTerm)) ||
+        (airport.icao_code?.toLowerCase().includes(searchTerm)) ||
+        (airport.name?.toLowerCase().includes(searchTerm)) ||
+        (airport.municipality?.toLowerCase().includes(searchTerm))
       ).slice(0, 8);
+
       setFilteredToAirports(filtered);
-      setShowToSuggestions(true);
+      setShowToSuggestions(filtered.length > 0);
     } else {
       setFilteredToAirports([]);
       setShowToSuggestions(false);
     }
   }, [searchTo, airports]);
 
-  // Fonction de recherche
+  // Gestion de la soumission du formulaire
   const handleSearch = () => {
     onSearch({
-      from: searchFrom,
-      to: searchTo,
+      from: searchFrom.trim(),
+      to: searchTo.trim(),
       date: searchDate,
       passengers: passengers
     });
   };
 
-  // Sélectionner un aéroport depuis les suggestions
+  // Sélection d'un aéroport depuis les suggestions
   const selectFromAirport = (airport: Airport) => {
     const code = airport.iata_code || airport.icao_code;
     setSearchFrom(`${airport.municipality}, ${airport.name} (${code})`);
@@ -114,26 +121,37 @@ const SearchForm: React.FC<SearchFormProps> = ({
     setShowToSuggestions(false);
   };
 
+  // Gestion des touches pour la navigation au clavier
+  const handleKeyPress = (e: React.KeyboardEvent, type: 'from' | 'to') => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    } else if (e.key === 'Escape') {
+      type === 'from' ? setShowFromSuggestions(false) : setShowToSuggestions(false);
+    }
+  };
+
   return (
     <div className="shadow-lg md:p-6 py-6 max-w-6xl md:mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-[1px]">
-        {/* From Input with Suggestions */}
+
+        {/* Champ de recherche "From" avec autocomplétion */}
         <div className="relative">
           <input
             type="text"
             placeholder="From"
             value={searchFrom}
             onChange={(e) => setSearchFrom(e.target.value)}
-            className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936]"
+            onKeyDown={(e) => handleKeyPress(e, 'from')}
+            className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
           />
-          {showFromSuggestions && filteredFromAirports.length > 0 && (
+          {showFromSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">
               {filteredFromAirports.map((airport, index) => {
                 const code = airport.iata_code || airport.icao_code;
                 return (
                   <div
                     key={`from-${code}-${index}`}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
                     onClick={() => selectFromAirport(airport)}
                   >
                     <div className="font-medium">{airport.municipality} ({code})</div>
@@ -145,23 +163,24 @@ const SearchForm: React.FC<SearchFormProps> = ({
           )}
         </div>
 
-        {/* To Input with Suggestions */}
+        {/* Champ de recherche "To" avec autocomplétion */}
         <div className="relative">
           <input
             type="text"
             placeholder="To"
             value={searchTo}
             onChange={(e) => setSearchTo(e.target.value)}
-            className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936]"
+            onKeyDown={(e) => handleKeyPress(e, 'to')}
+            className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
           />
-          {showToSuggestions && filteredToAirports.length > 0 && (
+          {showToSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">
               {filteredToAirports.map((airport, index) => {
                 const code = airport.iata_code || airport.icao_code;
                 return (
                   <div
                     key={`to-${code}-${index}`}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
                     onClick={() => selectToAirport(airport)}
                   >
                     <div className="font-medium">{airport.municipality} ({code})</div>
@@ -173,18 +192,19 @@ const SearchForm: React.FC<SearchFormProps> = ({
           )}
         </div>
 
-        {/* Date Input */}
+        {/* Sélecteur de date */}
         <div className="relative">
-          <Calendar className="absolute left-3 top-5.5 text-gray-400 w-5 h-5 pointer-events-none" />
+          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
           <input
             type="date"
             value={searchDate}
             onChange={(e) => setSearchDate(e.target.value)}
-            className="w-full bg-white px-4 py-5 pl-10 border border-gray-300 focus:outline-none focus:border-[#d3a936]"
+            min={new Date().toISOString().split('T')[0]}
+            className="w-full bg-white px-4 py-5 pl-10 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
           />
         </div>
 
-        {/* Passengers */}
+        {/* Sélecteur du nombre de passagers */}
         <div className="bg-white flex items-center justify-between border border-gray-300 px-4 py-3">
           <User className="text-gray-400 w-5 h-5" />
           <span className="flex-1 text-center font-semibold">{passengers}</span>
@@ -192,19 +212,21 @@ const SearchForm: React.FC<SearchFormProps> = ({
             <button
               onClick={() => setPassengers(p => Math.min(p + 1, 20))}
               className="text-gray-600 hover:text-[#d3a936] transition-colors"
+              aria-label="Augmenter le nombre de passagers"
             >
               <Plus className="w-4 h-4" />
             </button>
             <button
               onClick={() => setPassengers(p => Math.max(p - 1, 1))}
               className="text-gray-600 hover:text-[#d3a936] transition-colors"
+              aria-label="Diminuer le nombre de passagers"
             >
               <Minus className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Search Button */}
+        {/* Bouton de recherche */}
         <button
           onClick={handleSearch}
           className="bg-[#d3a936] hover:bg-[#b8922e] text-white font-semibold py-3 px-6 transition-colors duration-200"

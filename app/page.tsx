@@ -43,6 +43,10 @@ import Navbar from './components/Navbar';
 // TYPES ET INTERFACES
 // =============================================================================
 
+/**
+ * Interface représentant un aéroport avec toutes ses propriétés
+ * Les données sont chargées depuis le fichier JSON world-airports.json
+ */
 interface Airport {
   id: number;
   ident: string;
@@ -70,35 +74,55 @@ interface Airport {
   last_updated: string;
 }
 
+/**
+ * Configuration pour les animaux de compagnie
+ * Séparés en petite et grande taille pour les contraintes de cabine
+ */
 interface PetData {
-  small: number;
-  large: number;
+  small: number;  // Animaux de petite taille (en cabine)
+  large: number;  // Animaux de grande taille (en soute)
 }
 
+/**
+ * Configuration détaillée des bagages
+ * Chaque type de bagage a des contraintes spécifiques en termes de taille et poids
+ */
 interface LuggageData {
-  carryOn: number;
-  holdLuggage: number;
-  skis: number;
-  golfBag: number;
-  others: number;
+  carryOn: number;      // Bagage cabine
+  holdLuggage: number;  // Bagage en soute
+  skis: number;         // Équipement de ski
+  golfBag: number;      // Sac de golf
+  others: number;       // Autres équipements spéciaux
 }
 
+/**
+ * Répartition des passagers par catégorie d'âge
+ * Les infants sont généralement assis sur les genoux d'un adulte
+ */
 interface PassengerData {
-  adults: number;
-  children: number;
-  infants: number;
+  adults: number;    // Passagers adultes (12+ ans)
+  children: number;  // Enfants (2-11 ans)
+  infants: number;   // Nourrissons (0-2 ans)
 }
 
+/**
+ * Structure des données pour un vol simple (One Way)
+ * Contient tous les détails nécessaires à la réservation
+ */
 interface OneWayFormData {
-  from: string;
-  to: string;
-  departureDate: string;
-  departureTime: string;
+  from: string;           // Aéroport de départ formaté
+  to: string;             // Aéroport d'arrivée formaté
+  departureDate: string;  // Date de départ au format YYYY-MM-DD
+  departureTime: string;  // Heure de départ au format HH:MM
   passengers: PassengerData;
   pets: PetData;
   luggage: LuggageData;
 }
 
+/**
+ * Structure des données pour un vol aller-retour (Round Trip)
+ * Séparé en vol aller (outbound) et vol retour (return)
+ */
 interface RoundTripFormData {
   outbound: {
     from: string;
@@ -120,6 +144,10 @@ interface RoundTripFormData {
   };
 }
 
+/**
+ * Structure pour une étape de vol dans un trajet multi-étapes
+ * Chaque leg représente un segment de vol distinct
+ */
 interface FlightLeg {
   from: string;
   to: string;
@@ -130,14 +158,24 @@ interface FlightLeg {
   luggage: LuggageData;
 }
 
+/**
+ * Structure pour un trajet multi-étapes (Multi-Leg)
+ * Permet de créer des itinéraires complexes avec plusieurs escales
+ */
 interface MultiLegFormData {
   legs: FlightLeg[];
 }
 
+/**
+ * Props de base pour tous les composants de formulaire
+ */
 interface FormProps {
   onSubmit: (data: any) => Promise<void>;
 }
 
+/**
+ * Props pour les éléments de FAQ
+ */
 interface FAQItemProps {
   question: string;
   answer: string;
@@ -146,15 +184,25 @@ interface FAQItemProps {
 }
 
 // =============================================================================
-// CONSTANTS
+// CONSTANTS ET CONFIGURATIONS
 // =============================================================================
 
+/**
+ * Types de formulaires disponibles avec leurs libellés
+ * ONE WAY : Vol simple
+ * ROUND TRIP : Aller-retour
+ * MULTI-LEG : Multi-étapes
+ */
 const FORM_TABS = [
   { id: 'oneWay', label: 'ONE WAY' },
   { id: 'roundTrip', label: 'ROUND TRIP' },
   { id: 'multiLeg', label: 'MULTI-LEG' }
 ] as const;
 
+/**
+ * Catalogue des services proposés par EnvyJet
+ * Chaque service a une image, un titre et une description
+ */
 const SERVICES_DATA = [
   {
     title: "Exclusive private jet charter",
@@ -173,6 +221,10 @@ const SERVICES_DATA = [
   }
 ] as const;
 
+/**
+ * Questions fréquemment posées (FAQ)
+ * Structure question/réponse pour aider les utilisateurs
+ */
 const FAQ_DATA = [
   {
     question: "How far in advance should I book a charter to guarantee availability?",
@@ -192,6 +244,10 @@ const FAQ_DATA = [
   }
 ] as const;
 
+/**
+ * Avantages principaux de EnvyJet présentés dans le carousel
+ * Chaque avantage a une icône, un titre et une description détaillée
+ */
 const ADVANTAGES_DATA = [
   {
     title: "Speed",
@@ -216,9 +272,13 @@ const ADVANTAGES_DATA = [
 ] as const;
 
 // =============================================================================
-// HOOK POUR LA RECHERCHE D'AÉROPORTS
+// HOOK PERSONNALISÉ POUR LA GESTION DES AÉROPORTS
 // =============================================================================
 
+/**
+ * Hook personnalisé pour la gestion des données aéroports
+ * Charge les données depuis le JSON et fournit des fonctions de recherche
+ */
 const useAirports = () => {
   const [airports, setAirports] = useState<Airport[]>([]);
   const [loading, setLoading] = useState(false);
@@ -246,6 +306,12 @@ const useAirports = () => {
     loadAirports();
   }, []);
 
+  /**
+   * Recherche d'aéroports basée sur une requête texte
+   * Cherche dans les codes IATA/ICAO, noms, villes et pays
+   * @param query - Terme de recherche (minimum 2 caractères)
+   * @returns Liste des aéroports correspondants triés par pertinence
+   */
   const searchAirports = useCallback((query: string): Airport[] => {
     if (!query || query.length < 2) return [];
 
@@ -270,29 +336,33 @@ const useAirports = () => {
         );
       })
       .sort((a, b) => {
-        // Prioriser les aéroports avec IATA code
+        // Priorité aux aéroports avec code IATA
         if (a.iata_code && !b.iata_code) return -1;
         if (!a.iata_code && b.iata_code) return 1;
 
-        // Prioriser les correspondances exactes avec IATA code
+        // Priorité aux correspondances exactes de code IATA
         const aIataMatch = a.iata_code?.toLowerCase() === lowercaseQuery;
         const bIataMatch = b.iata_code?.toLowerCase() === lowercaseQuery;
         if (aIataMatch && !bIataMatch) return -1;
         if (!aIataMatch && bIataMatch) return 1;
 
-        // Trier par score
+        // Tri final par score de pertinence
         return b.score - a.score;
       })
-      .slice(0, 10);
+      .slice(0, 10); // Limite à 10 résultats pour les performances
   }, [airports]);
 
   return { airports, loading, error, searchAirports };
 };
 
 // =============================================================================
-// COMPOSANT CHAMP AÉROPORT AVEC SUGGESTIONS
+// COMPOSANT CHAMP AÉROPORT AVEC AUTO-COMPLÉTION
 // =============================================================================
 
+/**
+ * Composant de champ de saisie d'aéroport avec suggestions automatiques
+ * Utilise le hook useAirports pour la recherche en temps réel
+ */
 interface AirportInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -312,6 +382,7 @@ const AirportInput: React.FC<AirportInputProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { searchAirports, loading, error } = useAirports();
 
+  // Gestion de l'affichage des suggestions basée sur la saisie
   useEffect(() => {
     if (value.length >= 2 && !loading && isFocused) {
       const results = searchAirports(value);
@@ -323,6 +394,7 @@ const AirportInput: React.FC<AirportInputProps> = ({
     }
   }, [value, searchAirports, loading, isFocused]);
 
+  // Fermeture des suggestions au clic extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -335,6 +407,10 @@ const AirportInput: React.FC<AirportInputProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  /**
+   * Gestion de la sélection d'un aéroport dans les suggestions
+   * Formate la valeur d'affichage et notifie le parent
+   */
   const handleSelectAirport = (airport: Airport) => {
     const displayValue = airport.iata_code
       ? `${airport.iata_code} - ${airport.name}, ${airport.municipality}`
@@ -376,13 +452,14 @@ const AirportInput: React.FC<AirportInputProps> = ({
         required
       />
 
-
+      {/* Indicateur de chargement pendant la recherche */}
       {loading && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#a98c2f]"></div>
         </div>
       )}
 
+      {/* Liste des suggestions avec animation */}
       <AnimatePresence>
         {showSuggestions && suggestions.length > 0 && (
           <motion.div
@@ -420,6 +497,7 @@ const AirportInput: React.FC<AirportInputProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Affichage des erreurs de chargement */}
       {error && (
         <div className="absolute top-full left-0 right-0 bg-red-50 border border-red-200 p-2 text-red-600 text-xs mt-1 z-[1000]">
           {error}
@@ -430,21 +508,34 @@ const AirportInput: React.FC<AirportInputProps> = ({
 };
 
 // =============================================================================
-// UTILITAIRES DE DATE
+// UTILITAIRES DE DATE ET FONCTIONS HELPER
 // =============================================================================
 
+/**
+ * Formate une date au format YYYY-MM-DD pour les inputs date
+ * @param date - Date à formater
+ * @returns Date formatée en string
+ */
 const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
+/**
+ * Retourne la date du jour au format YYYY-MM-DD
+ * Utilisé pour restreindre la sélection de dates passées
+ */
 const getToday = (): string => {
   return formatDate(new Date());
 };
 
 // =============================================================================
-// HOOKS PERSONNALISÉS
+// HOOKS PERSONNALISÉS RÉUTILISABLES
 // =============================================================================
 
+/**
+ * Hook pour la soumission de formulaires avec gestion d'état de chargement
+ * Centralise la logique d'envoi des données et la gestion des erreurs
+ */
 const useFormSubmission = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -479,6 +570,10 @@ const useFormSubmission = () => {
   return { submitForm, isSubmitting };
 };
 
+/**
+ * Hook pour détecter si le code s'exécute côté client
+ * Important pour éviter les erreurs d'hydratation avec Next.js
+ */
 const useClientCheck = () => {
   const [isClient, setIsClient] = useState(false);
 
@@ -490,9 +585,13 @@ const useClientCheck = () => {
 };
 
 // =============================================================================
-// COMPOSANT DROPDOWN
+// COMPOSANTS D'INTERFACE RÉUTILISABLES
 // =============================================================================
 
+/**
+ * Composant de compteur avec boutons +/- pour la sélection numérique
+ * Utilisé pour les passagers, animaux et bagages
+ */
 const DropdownCounter = ({
   label,
   value,
@@ -541,6 +640,10 @@ const DropdownCounter = ({
   );
 };
 
+/**
+ * Menu déroulant pour la sélection des passagers
+ * Gère les adultes, enfants et nourrissons avec validation
+ */
 const PassengersDropdown = ({
   passengers,
   onChange
@@ -556,6 +659,7 @@ const PassengersDropdown = ({
     (passengers.children || 0) +
     (passengers.infants || 0);
 
+  // Fermeture du dropdown au clic extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -620,6 +724,10 @@ const PassengersDropdown = ({
   );
 };
 
+/**
+ * Menu déroulant pour la sélection des animaux de compagnie
+ * Distingue les petites et grandes races pour les contraintes aériennes
+ */
 const PetsDropdown = ({
   pets,
   onChange
@@ -687,6 +795,10 @@ const PetsDropdown = ({
   );
 };
 
+/**
+ * Menu déroulant pour la sélection détaillée des bagages
+ * Gère différents types de bagages avec leurs contraintes spécifiques
+ */
 const LuggageDropdown = ({
   luggage,
   onChange
@@ -775,9 +887,13 @@ const LuggageDropdown = ({
 };
 
 // =============================================================================
-// COMPOSANTS RÉUTILISABLES
+// COMPOSANTS DE PRÉSENTATION RÉUTILISABLES
 // =============================================================================
 
+/**
+ * Composant de fond vidéo pour la section hero
+ * Gère le fallback en cas d'erreur de chargement vidéo
+ */
 const VideoBackground = () => {
   const [videoError, setVideoError] = useState(false);
 
@@ -813,6 +929,10 @@ const VideoBackground = () => {
   );
 };
 
+/**
+ * Composant image sécurisé avec gestion des erreurs et état de chargement
+ * Affiche un fallback si l'image principale ne charge pas
+ */
 const SafeImage = ({
   src,
   alt,
@@ -856,6 +976,10 @@ const SafeImage = ({
   );
 };
 
+/**
+ * Composant d'élément FAQ avec animation d'ouverture/fermeture
+ * Gère l'état d'ouverture localement pour de meilleures performances
+ */
 const FAQItem: React.FC<FAQItemProps> = React.memo(({ question, answer, isOpen, onClick }) => {
   return (
     <motion.div
@@ -904,6 +1028,10 @@ const FAQItem: React.FC<FAQItemProps> = React.memo(({ question, answer, isOpen, 
 
 FAQItem.displayName = 'FAQItem';
 
+/**
+ * Carousel des avantages EnvyJet avec navigation Swiper
+ * Présente les 4 avantages principaux de manière dynamique
+ */
 const AdvantagesCarousel = () => {
   const swiperRef = useRef<any>(null);
 
@@ -975,9 +1103,13 @@ const AdvantagesCarousel = () => {
 };
 
 // =============================================================================
-// COMPOSANTS DE FORMULAIRES
+// COMPOSANTS DE FORMULAIRES SPÉCIFIQUES
 // =============================================================================
 
+/**
+ * Formulaire pour les vols simples (One Way)
+ * Capture toutes les informations nécessaires pour un vol direct
+ */
 const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<OneWayFormData>({
     from: '',
@@ -996,17 +1128,20 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
     e.preventDefault();
     setValidationErrors([]);
 
+    // Validation des champs obligatoires
     if (!formData.from || !formData.to || !formData.departureDate) {
       setValidationErrors(['Please fill all required fields']);
       return;
     }
 
+    // Sauvegarde des données en session pour la page de détails
     sessionStorage.setItem('bookingData', JSON.stringify({
       type: 'oneWay',
       data: formData,
       timestamp: new Date().toISOString()
     }));
 
+    // Redirection vers la page de détails de réservation
     router.push('/details');
   };
 
@@ -1038,7 +1173,9 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
         </motion.div>
       )}
 
+      {/* Grille responsive pour les champs du formulaire */}
       <div className="grid grid-cols-1 md:grid-cols-15 gap-1">
+        {/* Champ aéroport de départ */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
           <AirportInput
             value={formData.from}
@@ -1047,6 +1184,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
+        {/* Champ aéroport d'arrivée */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
           <AirportInput
             value={formData.to}
@@ -1055,6 +1193,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
+        {/* Champ date de départ */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
           <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
           <input
@@ -1068,6 +1207,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
+        {/* Champ heure de départ */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
           <FiClock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
           <input
@@ -1080,6 +1220,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
+        {/* Section des options : passagers, animaux, bagages */}
         <div className="grid grid-cols-3 sm:grid-cols-3 gap-1 md:col-span-3 ">
           <div>
             <PassengersDropdown
@@ -1103,6 +1244,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           </div>
         </div>
 
+        {/* Bouton de soumission */}
         <motion.button
           whileHover={{ scale: 1.03, backgroundColor: "#a98c2f" }}
           whileTap={{ scale: 0.97 }}
@@ -1129,6 +1271,10 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
   );
 };
 
+/**
+ * Formulaire pour les vols aller-retour (Round Trip)
+ * Gère deux segments de vol : aller et retour
+ */
 const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<RoundTripFormData>({
     outbound: {
@@ -1158,6 +1304,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
     e.preventDefault();
     setValidationErrors([]);
 
+    // Validation des champs obligatoires pour les deux segments
     if (!formData.outbound.from || !formData.outbound.to || !formData.outbound.date ||
       !formData.return.from || !formData.return.to || !formData.return.date) {
       setValidationErrors(['Please fill all required fields']);
@@ -1173,6 +1320,10 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
     router.push('/details');
   };
 
+  /**
+   * Gestionnaire pour le segment aller
+   * Met automatiquement à jour le segment retour pour cohérence
+   */
   const handleOutboundChange = useCallback((field: keyof typeof formData.outbound, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -1188,6 +1339,9 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
     }
   }, [validationErrors.length]);
 
+  /**
+   * Gestionnaire pour le segment retour
+   */
   const handleReturnChange = useCallback((field: keyof typeof formData.return, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -1217,6 +1371,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
         </motion.div>
       )}
 
+      {/* Section Vol Aller */}
       <div className="space-y-4">
         <h3
           className="text-white text-base font-medium md:mt-"
@@ -1300,6 +1455,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
         </div>
       </div>
 
+      {/* Section Vol Retour */}
       <div className="space-y-3">
         <h3 className="text-white text-base font-medium" style={{ fontFamily: 'Century Gothic, sans-serif' }}>Inbound</h3>
         <div className="grid grid-cols-1 md:grid-cols-14 gap-1">
@@ -1393,6 +1549,10 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
   );
 };
 
+/**
+ * Formulaire pour les vols multi-étapes (Multi-Leg)
+ * Permet d'ajouter dynamiquement des segments de vol
+ */
 const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
   const emptyLeg = {
     from: '',
@@ -1582,6 +1742,10 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
   );
 };
 
+/**
+ * Composant principal de formulaire avec onglets
+ * Gère la navigation entre les différents types de vol
+ */
 const BookingForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [activeForm, setActiveForm] = useState('oneWay');
   const isClient = useClientCheck();
@@ -1590,6 +1754,7 @@ const BookingForm: React.FC<FormProps> = ({ onSubmit }) => {
     await onSubmit(formData);
   };
 
+  // Affichage de chargement pendant le rendu côté serveur
   if (!isClient) {
     return (
       <div className="w-full bg-white/10 backdrop-blur-md border border-white/20 p-6 shadow-2xl">
@@ -1608,6 +1773,7 @@ const BookingForm: React.FC<FormProps> = ({ onSubmit }) => {
       transition={{ duration: 0.8, delay: 0.4 }}
       className="w-full bg-white/10 backdrop-blur-md border border-white/20 p-4 lg:p-6 shadow-2xl"
     >
+      {/* Navigation par onglets */}
       <div className="flex bg-white/10 p-1 mb-6" role="tablist">
         {FORM_TABS.map((tab) => (
           <motion.button
@@ -1628,6 +1794,7 @@ const BookingForm: React.FC<FormProps> = ({ onSubmit }) => {
         ))}
       </div>
 
+      {/* Contenu du formulaire actif */}
       <AnimatePresence mode="wait">
         <div
           key={activeForm}
@@ -1642,9 +1809,13 @@ const BookingForm: React.FC<FormProps> = ({ onSubmit }) => {
 };
 
 // =============================================================================
-// COMPOSANT PRINCIPAL
+// COMPOSANT PRINCIPAL DE LA PAGE D'ACCUEIL
 // =============================================================================
 
+/**
+ * Page d'accueil principale de EnvyJet
+ * Intègre tous les composants et sections de la landing page
+ */
 export default function Home() {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -1682,6 +1853,7 @@ export default function Home() {
     setOpenFAQ(prev => prev === index ? null : index);
   }, []);
 
+  // Affichage de chargement pendant l'hydratation
   if (!isClient) {
     return (
       <div className="relative w-full min-h-screen overflow-x-hidden bg-gray-100">
@@ -1740,6 +1912,7 @@ export default function Home() {
 
       <Navbar />
 
+      {/* Section Hero avec fond vidéo */}
       <section className="relative min-h-screen flex flex-col items-center justify-center w-full overflow-hidden" style={{ margin: 0, padding: 0 }}>
         <VideoBackground />
 
@@ -1768,6 +1941,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Formulaire de réservation principal */}
         <div className="relative z-10 w-full px-4 pb-8">
           <div className="container mx-auto max-w-7xl">
             <BookingForm onSubmit={handleFormSubmit} />
@@ -1775,6 +1949,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section À propos de EnvyJet */}
       <section id="why-envyjet" className="py-12  lg:py-20 bg-white w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -1857,6 +2032,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section Services */}
       <section
         id="services"
         className="relative py-12 lg:py-20 w-full bg-cover bg-center bg-no-repeat"
@@ -1932,6 +2108,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section Avantages avec carousel */}
       <section className="py-12 lg:py-20 bg-white w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
           <motion.div
@@ -1949,6 +2126,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section FAQ */}
       <section className="py-12 lg:py-20 bg-[#f8f8f8] w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 max-w-full">
           <motion.div
@@ -1976,6 +2154,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section Newsletter */}
       <section className="py-12 lg:py-20 bg-gradient-to-br from-[#1a3a57] to-[#2d5a82] w-full" style={{ margin: 0 }}>
         <div className="container mx-auto px-4 lg:px-6 text-center max-w-full">
           <motion.div

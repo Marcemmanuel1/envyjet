@@ -8,7 +8,11 @@ import FlightCard from "../components/FlightCard";
 import Pagination from "../components/Pagination";
 import { useRouter } from 'next/navigation';
 
-// Interface Flight MISE À JOUR pour inclure 'pricestarting'
+/**
+ * Interface complète pour représenter un vol Empty Leg
+ * Un Empty Leg est un vol de repositionnement d'avion sans passagers
+ * qui peut être vendu à prix réduit
+ */
 interface Flight {
   id: number;
   departure: string;
@@ -23,23 +27,61 @@ interface Flight {
   codeTo: string;
   cityFrom: string;
   cityTo: string;
-  pricestarting: string; // AJOUTÉ : Requis par FlightCard pour la compilation
+  pricestarting: string; // Indicateur de prix ("Up to", "From", etc.)
 }
 
+/**
+ * Interface pour les données de date/heure extraites
+ */
+interface DateTimeInfo {
+  date: string;
+  time: string;
+}
+
+/**
+ * Interface pour les données de réservation sauvegardées en session
+ */
+interface BookingData {
+  type: 'oneWay';
+  data: {
+    from: string;
+    to: string;
+    departureDate: string;
+    departureTime: string;
+    passengers: {
+      adults: number;
+      children: number;
+      infants: number;
+    };
+  };
+  timestamp: string;
+}
+
+/**
+ * Page principale pour la recherche et réservation de vols Empty Legs
+ * Les Empty Legs permettent de bénéficier de tarifs réduits sur des vols privés
+ * lorsque l'avion doit se repositionner sans passagers
+ */
 const EmptyLegsPage = () => {
   const router = useRouter();
+
+  // États pour la gestion de la pagination et des données
   const [currentPage, setCurrentPage] = useState(1);
   const [allFlights, setAllFlights] = useState<Flight[]>([]);
   const [filteredFlights, setFilteredFlights] = useState<Flight[]>([]);
 
+  // Configuration de la pagination
   const itemsPerPage = 6;
-  const priceIndicator = "Up to"; // Indicateur de prix par défaut pour les Empty Legs
+  const priceIndicator = "Up to"; // Indicateur standard pour les Empty Legs
 
-  // Données d'exemple pour les vols empty legs - MISES À JOUR AVEC 'pricestarting'
+  /**
+   * Données mockées des vols Empty Legs disponibles
+   * En production, ces données viendraient d'une API
+   */
   const flightsData: Flight[] = [
     {
       id: 1,
-      departure: 'Thu 29 Oct 2026', // Ancien: Wed 29 Oct 2025
+      departure: 'Thu 29 Oct 2026',
       from: 'Scottsdale, Scottsdale Airport (SDL), AZ, US',
       to: 'Teterboro, Teterboro Airport (TEB), NJ, US',
       aircraft: 'Gulfstream G-IV',
@@ -51,11 +93,11 @@ const EmptyLegsPage = () => {
       codeTo: 'TEB',
       cityFrom: 'Scottsdale',
       cityTo: 'Teterboro',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     },
     {
       id: 2,
-      departure: 'Thu 29 Oct 2026', // Ancien: Wed 29 Oct 2025
+      departure: 'Thu 29 Oct 2026',
       from: 'West Palm Beach, Palm Beach International (PBI), FL, US',
       to: 'Jacksonville, Jacksonville International Airport (JAX), FL, US',
       aircraft: 'Citation X',
@@ -67,11 +109,11 @@ const EmptyLegsPage = () => {
       codeTo: 'JAX',
       cityFrom: 'West Palm Beach',
       cityTo: 'Jacksonville',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     },
     {
       id: 3,
-      departure: 'Fri 30 Oct 2026', // Ancien: Thu 30 Oct 2025
+      departure: 'Fri 30 Oct 2026',
       from: 'Miami, Miami International Airport (MIA), FL, US',
       to: 'New York, Teterboro Airport (TEB), NJ, US',
       aircraft: 'Challenger 350',
@@ -83,11 +125,11 @@ const EmptyLegsPage = () => {
       codeTo: 'TEB',
       cityFrom: 'Miami',
       cityTo: 'New York',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     },
     {
       id: 4,
-      departure: 'Fri 30 Oct 2026', // Ancien: Thu 30 Oct 2025
+      departure: 'Fri 30 Oct 2026',
       from: 'Los Angeles, Van Nuys Airport (VNY), CA, US',
       to: 'Las Vegas, Henderson Executive Airport (HND), NV, US',
       aircraft: 'Learjet 75',
@@ -99,11 +141,11 @@ const EmptyLegsPage = () => {
       codeTo: 'HND',
       cityFrom: 'Los Angeles',
       cityTo: 'Las Vegas',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     },
     {
       id: 5,
-      departure: 'Sat 31 Oct 2026', // Ancien: Fri 31 Oct 2025
+      departure: 'Sat 31 Oct 2026',
       from: 'Chicago, Chicago Midway Airport (MDW), IL, US',
       to: 'Aspen, Aspen-Pitkin County Airport (ASE), CO, US',
       aircraft: 'Citation Sovereign',
@@ -115,11 +157,11 @@ const EmptyLegsPage = () => {
       codeTo: 'ASE',
       cityFrom: 'Chicago',
       cityTo: 'Aspen',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     },
     {
       id: 6,
-      departure: 'Sat 31 Oct 2026', // Ancien: Fri 31 Oct 2025
+      departure: 'Sat 31 Oct 2026',
       from: 'Dallas, Dallas Love Field (DAL), TX, US',
       to: 'Houston, William P. Hobby Airport (HOU), TX, US',
       aircraft: 'Phenom 300',
@@ -131,11 +173,11 @@ const EmptyLegsPage = () => {
       codeTo: 'HOU',
       cityFrom: 'Dallas',
       cityTo: 'Houston',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     },
     {
       id: 7,
-      departure: 'Sun 01 Nov 2026', // Ancien: Sat 01 Nov 2025
+      departure: 'Sun 01 Nov 2026',
       from: 'San Francisco, San Francisco International (SFO), CA, US',
       to: 'Seattle, Boeing Field (BFI), WA, US',
       aircraft: 'Global 6000',
@@ -147,11 +189,11 @@ const EmptyLegsPage = () => {
       codeTo: 'BFI',
       cityFrom: 'San Francisco',
       cityTo: 'Seattle',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     },
     {
       id: 8,
-      departure: 'Sun 01 Nov 2026', // Ancien: Sat 01 Nov 2025
+      departure: 'Sun 01 Nov 2026',
       from: 'Atlanta, DeKalb-Peachtree Airport (PDK), GA, US',
       to: 'Nashville, Nashville International Airport (BNA), TN, US',
       aircraft: 'Citation CJ3',
@@ -163,62 +205,91 @@ const EmptyLegsPage = () => {
       codeTo: 'BNA',
       cityFrom: 'Atlanta',
       cityTo: 'Nashville',
-      pricestarting: priceIndicator // NOUVEAU
+      pricestarting: priceIndicator
     }
   ];
 
-  // Fonction pour extraire la date et l'heure
-  const extractDateTime = (departureString: string) => {
+  /**
+   * Parse une chaîne de date de départ pour extraire la date et l'heure
+   * Format d'entrée: "Thu 29 Oct 2026"
+   * @param departureString - Chaîne de date au format texte
+   * @returns Objet contenant la date au format ISO et l'heure par défaut
+   */
+  const extractDateTime = (departureString: string): DateTimeInfo => {
     const parts = departureString.split(' ');
-    if (parts.length >= 4) {
-      const day = parts[1];
-      const month = parts[2];
-      const year = parts[3];
 
-      const months: { [key: string]: string } = {
-        'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
-        'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
-        'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
-      };
-
-      return {
-        date: `${year}-${months[month]}-${day.padStart(2, '0')}`,
-        time: "12:00"
-      };
+    // Validation du format de date
+    if (parts.length < 4) {
+      console.warn(`Format de date invalide: ${departureString}`);
+      return { date: "", time: "" };
     }
-    return { date: "", time: "" };
+
+    const day = parts[1];
+    const month = parts[2];
+    const year = parts[3];
+
+    // Mapping des mois pour conversion numérique
+    const months: { [key: string]: string } = {
+      'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+      'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+      'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+    };
+
+    const monthNumber = months[month];
+    if (!monthNumber) {
+      console.warn(`Mois invalide: ${month}`);
+      return { date: "", time: "" };
+    }
+
+    return {
+      date: `${year}-${monthNumber}-${day.padStart(2, '0')}`,
+      time: "12:00" // Heure par défaut pour les Empty Legs
+    };
   };
 
-  // Fonction pour formater l'aéroport selon le format attendu par la page details
+  /**
+   * Formate les informations de l'aéroport de départ
+   * selon le format attendu par la page de détails
+   * @param flight - Objet vol contenant les informations d'aéroport
+   * @returns Chaîne formatée "CODE - Ville Airport, Ville"
+   */
   const formatAirportString = (flight: Flight): string => {
     return `${flight.codeFrom} - ${flight.cityFrom} Airport, ${flight.cityFrom}`;
   };
 
-  // Fonction pour formater l'aéroport d'arrivée
+  /**
+   * Formate les informations de l'aéroport d'arrivée
+   * @param flight - Objet vol contenant les informations d'aéroport
+   * @returns Chaîne formatée "CODE - Ville Airport, Ville"
+   */
   const formatArrivalAirportString = (flight: Flight): string => {
     return `${flight.codeTo} - ${flight.cityTo} Airport, ${flight.cityTo}`;
   };
 
-  // Fonction pour gérer le clic sur "MORE INFO"
-  const handleMoreInfo = (flight: Flight) => {
+  /**
+   * Gère la navigation vers la page de détails d'un vol
+   * Sauvegarde les données de réservation en session storage
+   * @param flight - Vol sélectionné pour plus d'informations
+   */
+  const handleMoreInfo = (flight: Flight): void => {
     try {
       const { date, time } = extractDateTime(flight.departure);
 
-      // Créer l'objet bookingData avec la structure exacte attendue par la page Details
-      const bookingData = {
-        type: 'oneWay' as const,
+      // Validation des données essentielles
+      if (!date || !flight.codeFrom || !flight.codeTo) {
+        throw new Error('Données de vol incomplètes');
+      }
+
+      // Construction de l'objet de réservation avec la structure exacte attendue
+      const bookingData: BookingData = {
+        type: 'oneWay',
         data: {
-          // Format attendu: "CODE - Ville Airport, Ville"
           from: formatAirportString(flight),
           to: formatArrivalAirportString(flight),
-
-          // Informations de date et heure
           departureDate: date,
           departureTime: time,
-
-          // Informations sur les passagers (par défaut)
           passengers: {
-            adults: 1,
+            adults: 1,  // Valeur par défaut
             children: 0,
             infants: 0
           }
@@ -226,46 +297,60 @@ const EmptyLegsPage = () => {
         timestamp: new Date().toISOString()
       };
 
-      console.log('Données de réservation sauvegardées:', bookingData);
+      console.log('Données de réservation préparées:', bookingData);
 
-      // Stocker avec la clé correcte pour la page Details
+      // Sauvegarde sécurisée en session storage
       sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
 
-      // Vérification immédiate
+      // Vérification immédiate de la sauvegarde
       const stored = sessionStorage.getItem('bookingData');
-      console.log('Vérification du stockage:', stored ? JSON.parse(stored) : 'Aucune donnée');
+      if (!stored) {
+        throw new Error('Échec de la sauvegarde en session storage');
+      }
 
-      // Redirection vers la page details
+      console.log('Vérification du stockage:', JSON.parse(stored));
+
+      // Navigation vers la page de détails
       router.push('/details');
 
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde des données:', error);
-      alert('Une erreur est survenue. Veuillez réessayer.');
+      console.error('Erreur lors de la préparation des données de réservation:', error);
+      alert('Une erreur est survenue lors de la préparation de votre réservation. Veuillez réessayer.');
     }
   };
 
-  // Fonction de recherche
-  const handleSearch = (filters: { from: string; to: string; date: string; passengers: number }) => {
-    let filtered = allFlights;
+  /**
+   * Gère la recherche et le filtrage des vols
+   * Applique les filtres sur la liste complète des vols
+   * @param filters - Critères de recherche (origine, destination, date, passagers)
+   */
+  const handleSearch = (filters: { from: string; to: string; date: string; passengers: number }): void => {
+    let filtered = [...allFlights]; // Copie pour immutabilité
 
-    if (filters.from) {
+    // Filtre par aéroport de départ
+    if (filters.from.trim()) {
+      const searchTerm = filters.from.toLowerCase().trim();
       filtered = filtered.filter(flight =>
-        flight.from.toLowerCase().includes(filters.from.toLowerCase()) ||
-        flight.cityFrom.toLowerCase().includes(filters.from.toLowerCase()) ||
-        flight.codeFrom.toLowerCase().includes(filters.from.toLowerCase())
+        flight.from.toLowerCase().includes(searchTerm) ||
+        flight.cityFrom.toLowerCase().includes(searchTerm) ||
+        flight.codeFrom.toLowerCase().includes(searchTerm)
       );
     }
 
-    if (filters.to) {
+    // Filtre par aéroport d'arrivée
+    if (filters.to.trim()) {
+      const searchTerm = filters.to.toLowerCase().trim();
       filtered = filtered.filter(flight =>
-        flight.to.toLowerCase().includes(filters.to.toLowerCase()) ||
-        flight.cityTo.toLowerCase().includes(filters.to.toLowerCase()) ||
-        flight.codeTo.toLowerCase().includes(filters.to.toLowerCase())
+        flight.to.toLowerCase().includes(searchTerm) ||
+        flight.cityTo.toLowerCase().includes(searchTerm) ||
+        flight.codeTo.toLowerCase().includes(searchTerm)
       );
     }
 
+    // Filtre par date de départ
     if (filters.date) {
       const searchDateObj = new Date(filters.date);
+
       filtered = filtered.filter(flight => {
         const flightDateStr = flight.departure.split(' ').slice(1).join(' ');
         const months: { [key: string]: string } = {
@@ -273,23 +358,29 @@ const EmptyLegsPage = () => {
           'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
           'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
         };
+
         const [day, month, year] = flightDateStr.split(' ');
         const flightDate = new Date(`${year}-${months[month]}-${day.padStart(2, '0')}`);
+
         return flightDate.toDateString() === searchDateObj.toDateString();
       });
     }
 
+    // Application des résultats filtrés
     setFilteredFlights(filtered);
-    setCurrentPage(1);
+    setCurrentPage(1); // Retour à la première page après recherche
   };
 
-  // Charger les données initiales
+  /**
+   * Initialisation des données au chargement du composant
+   * Simule le chargement depuis une API
+   */
   useEffect(() => {
     setAllFlights(flightsData);
     setFilteredFlights(flightsData);
   }, []);
 
-  // Calculer les vols à afficher
+  // Calcul des données de pagination
   const indexOfLastFlight = currentPage * itemsPerPage;
   const indexOfFirstFlight = indexOfLastFlight - itemsPerPage;
   const currentFlights = filteredFlights.slice(indexOfFirstFlight, indexOfLastFlight);
@@ -299,7 +390,7 @@ const EmptyLegsPage = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Hero Section */}
+      {/* Section Hero avec image de fond et overlay */}
       <div
         className="relative bg-cover bg-center md:h-96 pt-20"
         style={{
@@ -307,51 +398,62 @@ const EmptyLegsPage = () => {
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900/70 to-gray-800/50"></div>
+
         <div className="relative container mx-auto px-4 h-full flex flex-col justify-center">
           <h1 className="text-3xl text-center md:text-left md:text-2xl text-white mb-4">
             EMPTY LEGS CHARTER FLIGHTS
           </h1>
+
           <p className="text-lg text-white/90 max-w-3xl md:mb-8 text-justify">
-            Booking an empty leg flight allows you to benefit from exceptionally reduced rates while enjoying the luxury and comfort of a private jet.
+            Booking an empty leg flight allows you to benefit from exceptionally reduced rates
+            while enjoying the luxury and comfort of a private jet.
           </p>
 
-          {/* Search Form */}
+          {/* Composant de recherche */}
           <SearchForm onSearch={handleSearch} />
         </div>
       </div>
 
-      {/* Results Section */}
+      {/* Section des résultats */}
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
+          {/* En-tête avec compteur de résultats */}
           <h2 className="text-2xl text-[#b8922e] mb-8">
-            {filteredFlights.length} flights
+            {filteredFlights.length} {filteredFlights.length === 1 ? 'flight' : 'flights'}
           </h2>
 
-          {/* Flights Grid */}
+          {/* Grille des vols ou message d'absence de résultats */}
           {currentFlights.length > 0 ? (
             <>
               <div className="grid gap-8 mb-12">
                 {currentFlights.map((flight) => (
                   <FlightCard
                     key={flight.id}
-                    flight={flight} // OK: 'flight' a maintenant la propriété 'pricestarting' requise
+                    flight={flight}
                     onMoreInfo={() => handleMoreInfo(flight)}
                   />
                 ))}
               </div>
 
-              {/* Pagination */}
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredFlights.length}
-              />
+              {/* Pagination - affichée seulement si nécessaire */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={filteredFlights.length}
+                />
+              )}
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">No flights found matching your search criteria.</p>
+              <p className="text-gray-600 text-lg">
+                No flights found matching your search criteria.
+              </p>
+              <p className="text-gray-500 mt-2">
+                Try adjusting your search filters or browse all available flights.
+              </p>
             </div>
           )}
         </div>
