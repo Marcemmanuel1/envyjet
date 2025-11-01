@@ -13,6 +13,7 @@ interface Flight {
   capacity: number;
   price: number;
   image: string;
+  pricestarting: string;
 }
 
 interface FlightCardProps {
@@ -120,17 +121,17 @@ const FlightCard: React.FC<FlightCardProps> = ({
           {/* Content */}
           <div className="flex-1 p-6 flex flex-col justify-between">
             <div>
-              <p className="text-gray-600 text-sm mb-15">
+              <p className="text-gray-600 text-sm mb-4">
                 Departure: <span className="font-semibold text-gray-800">{flight.departure}</span>
               </p>
-              <div className="flex flex-col md:flex-row md:items-center text-gray-800 text-base">
+              <div className="flex flex-col md:flex-row md:items-center text-gray-800 text-base mb-4">
                 <span className="font-medium">{flight.from}</span>
                 <span className="mx-2 text-[#d3a936] my-1 md:my-0">→</span>
                 <span className="font-medium">{flight.to}</span>
               </div>
             </div>
 
-            <div className="text-gray-600 text-sm border-gray-200">
+            <div className="text-gray-600 text-sm">
               <span>Aircraft: </span>
               <span className="text-[#d3a936] font-semibold">{flight.aircraft}</span>
               <span>, {flight.type}, Capacity: {flight.capacity} passengers</span>
@@ -139,15 +140,17 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
           {/* Price & Action */}
           <div className="p-6 md:w-54 flex md:flex-col justify-between items-start md:items-end border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50">
-            <div className="w-full mb-2">
-              <p className="text-gray-600 text-left md:text-right text-sm mb-1">Price starting from</p>
+            <div className="w-full mb-4">
+              <p className="text-gray-600 text-left md:text-right text-sm mb-1">
+                {flight.pricestarting || "Price starting from"}
+              </p>
               <p className="text-2xl md:text-3xl text-left md:text-right font-bold text-gray-800">
                 €{flight.price.toLocaleString()}
               </p>
             </div>
             <button
               onClick={() => onMoreInfo(flight)}
-              className="w-full md:w-auto bg-[#d3a936] hover:bg-[#b8922e] text-white font-semibold px-7 py-5 transition-colors duration-200"
+              className="w-full md:w-auto bg-[#d3a936] hover:bg-[#b8922e] text-white font-semibold px-6 py-3 transition-colors duration-200"
             >
               MORE INFO
             </button>

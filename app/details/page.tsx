@@ -304,21 +304,14 @@ export default function Details() {
 
   /**
    * Gestionnaire pour annuler la réservation
-   * Supprime les données et redirige vers la page d'accueil
+   * Supprime les données et redirige immédiatement vers la page d'accueil
    */
   const handleCancel = (): void => {
-    // Confirmation avant annulation
-    const confirmCancel = window.confirm(
-      "Are you sure you want to cancel your booking? All entered information will be lost."
-    );
+    // Supprimer les données de réservation sans confirmation
+    sessionStorage.removeItem('bookingData');
 
-    if (confirmCancel) {
-      // Supprimer les données de réservation
-      sessionStorage.removeItem('bookingData');
-
-      // Rediriger vers la page d'accueil
-      router.push('/');
-    }
+    // Rediriger immédiatement vers la page d'accueil
+    router.push('/');
   };
 
   const isFormValid: boolean = Boolean(
@@ -674,7 +667,7 @@ export default function Details() {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric'
-                      })}, {flightTime}
+                      })}, @{flightTime}
                     </p>
                     {passengers > 0 && (
                       <p className="text-white text-sm mt-1">

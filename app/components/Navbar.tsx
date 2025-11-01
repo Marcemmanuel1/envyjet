@@ -121,7 +121,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
               <motion.a
                 href="/join"
                 whileHover={{ scale: 1.05, backgroundColor: "#a98c2f" }}
-                className="text-[#896c1d] px-4 xl:px-6 py-2 border bg-none border-[#d3a936] font-medium hover:text-white hover:shadow-lg transition-all duration-300 text-nowrap"
+                className="text-[#d3a936] px-4 xl:px-6 py-2 border bg-none border-[#d3a936] font-medium hover:text-white hover:shadow-lg transition-all duration-300 text-nowrap"
               >
                 Join
               </motion.a>
@@ -336,7 +336,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 </a>
                 <a
                   href="/join"
-                  className="block text-center bg-white text-white py-3 font-medium transition-all duration-300 hover:bg-[#a98c2f]"
+                  className="block text-center bg-[#d3a936] text-white py-3 font-medium transition-all duration-300 hover:bg-[#a98c2f]"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Join
