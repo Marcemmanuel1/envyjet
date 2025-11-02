@@ -288,12 +288,102 @@ const SharedFlightsPage = () => {
   };
 
   /**
-   * Ouvre la modal de détails pour un vol sélectionné
+   * Ouvre la modal de détails pour un vol ON SALE
+   * Redirige directement vers /details pour un vol ON PRESALE
    * @param flight - Vol sélectionné pour affichage des détails
    */
   const handleMoreInfo = (flight: Flight): void => {
-    setSelectedFlight(flight);
-    setIsModalOpen(true);
+    // Vérifier si le vol est dans la liste ON SALE ou ON PRESALE
+    const isSaleFlight = allSaleFlights.some(f => f.id === flight.id);
+    const isPresaleFlight = allPresaleFlights.some(f => f.id === flight.id);
+
+    if (isSaleFlight) {
+      // Pour ON SALE : ouvrir la modal
+      setSelectedFlight(flight);
+      setIsModalOpen(true);
+    } else if (isPresaleFlight) {
+      // Pour ON PRESALE : rediriger directement vers /details
+      handleDirectBooking(flight);
+    }
+  };
+
+  /**
+   * Gère la réservation directe pour les vols ON PRESALE
+   * Sauvegarde les données et redirige vers /details sans passer par la modal
+   * @param flight - Vol à réserver directement
+   */
+  const handleDirectBooking = (flight: Flight): void => {
+    try {
+      const dateTimeInfo = extractDateTime(flight.departure);
+
+      // Validation des données essentielles
+      if (!dateTimeInfo.date) {
+        throw new Error('Impossible d\'extraire la date de départ');
+      }
+
+      // Construction de l'objet de réservation complet
+      const bookingData: BookingData = {
+        type: 'oneWay',
+        data: {
+          // Informations de vol de base - utiliser les codes IATA et villes
+          from: `${flight.codeFrom} - ${flight.cityFrom}`,
+          to: `${flight.codeTo} - ${flight.cityTo}`,
+          departureDate: dateTimeInfo.date,
+          departureTime: dateTimeInfo.time,
+
+          // Informations détaillées pour l'affichage
+          codeFrom: flight.codeFrom,
+          codeTo: flight.codeTo,
+          cityFrom: flight.cityFrom,
+          cityTo: flight.cityTo,
+
+          // Configuration des passagers (valeurs par défaut)
+          passengers: {
+            adults: 1,
+            children: 0,
+            infants: 0
+          },
+
+          // Caractéristiques techniques du vol
+          aircraft: flight.aircraft,
+          type: flight.type,
+          capacity: flight.capacity,
+          price: flight.price,
+          totalCost: flight.price, // Prix de base pour un adulte
+
+          // Options supplémentaires avec valeurs par défaut
+          pets: { small: 0, large: 0 },
+          baggage: {
+            cabin: 0,
+            checked: 0,
+            skis: 0,
+            golf: 0,
+            other: 0
+          }
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('Données de réservation ON PRESALE préparées:', bookingData);
+
+      // Sauvegarde sécurisée en session storage
+      sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+
+      // Vérification de l'intégrité des données sauvegardées
+      const stored = sessionStorage.getItem('bookingData');
+      if (!stored) {
+        throw new Error('Échec de la sauvegarde en session storage');
+      }
+
+      console.log('Vérification du stockage ON PRESALE:', JSON.parse(stored));
+
+      // Redirection directe vers la page de détails
+      router.push('/details');
+
+    } catch (error) {
+      console.error('Erreur lors de la réservation directe ON PRESALE:', error);
+      alert('Une erreur est survenue lors de la préparation de votre réservation. Veuillez réessayer.');
+    }
   };
 
   /**
@@ -305,7 +395,7 @@ const SharedFlightsPage = () => {
   };
 
   /**
-   * Gère la finalisation de la réservation depuis la modal
+   * Gère la finalisation de la réservation depuis la modal (pour ON SALE)
    * Sauvegarde les données complètes et redirige vers la page de détails
    * @param flightData - Données complètes du vol avec options sélectionnées
    */
@@ -359,7 +449,7 @@ const SharedFlightsPage = () => {
         timestamp: new Date().toISOString()
       };
 
-      console.log('Données de réservation préparées:', bookingData);
+      console.log('Données de réservation ON SALE préparées:', bookingData);
 
       // Sauvegarde sécurisée en session storage
       sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
@@ -370,7 +460,7 @@ const SharedFlightsPage = () => {
         throw new Error('Échec de la sauvegarde en session storage');
       }
 
-      console.log('Vérification du stockage:', JSON.parse(stored));
+      console.log('Vérification du stockage ON SALE:', JSON.parse(stored));
 
       // Fermeture de la modal et redirection
       setIsModalOpen(false);
@@ -378,7 +468,7 @@ const SharedFlightsPage = () => {
       router.push('/details');
 
     } catch (error) {
-      console.error('Erreur lors de la préparation de la réservation:', error);
+      console.error('Erreur lors de la préparation de la réservation ON SALE:', error);
       alert('Une erreur est survenue lors de la préparation de votre réservation. Veuillez réessayer.');
     }
   };
@@ -535,8 +625,8 @@ const SharedFlightsPage = () => {
           <button
             onClick={() => handleTabChange('sale')}
             className={`text-xl px-6 py-3 rounded-t-lg transition-colors ${activeTab === 'sale'
-                ? 'text-[#b8922e] border-b-2 border-[#b8922e] font-semibold'
-                : 'text-gray-400 hover:text-gray-600'
+              ? 'text-[#b8922e] border-b-2 border-[#b8922e] font-semibold'
+              : 'text-gray-400 hover:text-gray-600'
               } ${isSearchActive ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isSearchActive}
             aria-pressed={activeTab === 'sale'}
@@ -546,8 +636,8 @@ const SharedFlightsPage = () => {
           <button
             onClick={() => handleTabChange('presale')}
             className={`text-xl px-6 py-3 rounded-t-lg transition-colors ${activeTab === 'presale'
-                ? 'text-[#b8922e] border-b-2 border-[#b8922e] font-semibold'
-                : 'text-gray-400 hover:text-gray-600'
+              ? 'text-[#b8922e] border-b-2 border-[#b8922e] font-semibold'
+              : 'text-gray-400 hover:text-gray-600'
               } ${isSearchActive ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isSearchActive}
             aria-pressed={activeTab === 'presale'}
@@ -599,7 +689,7 @@ const SharedFlightsPage = () => {
         </div>
       </div>
 
-      {/* Modal des détails du vol */}
+      {/* Modal des détails du vol - uniquement pour ON SALE */}
       {isModalOpen && selectedFlight && (
         <FlightDetailsModal
           flight={selectedFlight}
