@@ -404,7 +404,7 @@ const EmptyLegsPage = () => {
             EMPTY LEGS CHARTER FLIGHTS
           </h1>
 
-          <p className="text-lg text-white/90 max-w-3xl md:mb-8 text-justify">
+          <p className="text-lg text-white/90 max-w-full md:mb-8 text-justify">
             Booking an empty leg flight allows you to benefit from exceptionally reduced rates
             while enjoying the luxury and comfort of a private jet.
           </p>

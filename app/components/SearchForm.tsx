@@ -131,7 +131,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
   };
 
   return (
-    <div className="shadow-lg md:p-6 py-6 max-w-6xl md:mx-auto">
+    <div className="shadow-lg md:p-2 py-6 max-w-full mx-auto md:w-full">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-[1px]">
 
         {/* Champ de recherche "From" avec autocomplétion */}
