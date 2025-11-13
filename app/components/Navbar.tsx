@@ -17,6 +17,7 @@ interface NavbarProps {
 const Navbar = ({ transparent = true }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
 
   // Gestion du scroll pour l'effet de transparence
   useEffect(() => {
@@ -33,18 +34,24 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [transparent]);
 
-  // Blocage du scroll quand le menu mobile est ouvert
+  // Blocage du scroll quand un menu est ouvert
   useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
+    document.body.style.overflow = (isMobileMenuOpen || isDesktopMenuOpen) ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isDesktopMenuOpen]);
 
   const menuItems = [
     { label: 'WHY ENVYJET', href: '/why-envyjet' },
     { label: 'NECTAR', href: '/nectar' },
     { label: 'SHARED FLIGHTS', href: '/shared-flights' },
-    { label: 'EMPTY LEGS', href: '/empty-legs' },
-    { label: 'CONTACT US', href: '/contact' }
+    { label: 'EMPTY LEGS', href: '/empty-legs' }
+  ];
+
+  const burgerMenuItems = [
+    { label: 'CONTACT US', href: '/contact' },
+    { label: 'HELICOPTER SHARED', href: '/helicopter-shared' },
+    { label: 'OPERATORS', href: '/operators' },
+    { label: 'DESTINATIONS', href: '/destinations' }
   ];
 
   return (
@@ -64,7 +71,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
         style={{ fontFamily: 'Century Gothic, sans-serif' }}
       >
         <div className="container mx-auto px-4 sm:px-6 flex justify-between items-center">
-          {/* Logo et menu mobile */}
+          {/* Logo et menus */}
           <div className="flex items-center space-x-3 sm:space-x-4">
             {/* Bouton menu mobile */}
             <motion.button
@@ -75,6 +82,19 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             >
               <FiMenu
                 size={24}
+                className={isScrolled ? 'text-[#193650]' : 'text-white'}
+              />
+            </motion.button>
+
+            {/* Bouton menu burger desktop */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className="hidden lg:flex relative z-60 items-center space-x-2"
+              onClick={() => setIsDesktopMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <FiMenu
+                size={40}
                 className={isScrolled ? 'text-[#193650]' : 'text-white'}
               />
             </motion.button>
@@ -221,6 +241,19 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
         )}
       </AnimatePresence>
 
+      {/* Overlay du menu desktop */}
+      <AnimatePresence>
+        {isDesktopMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm hidden lg:block"
+            onClick={() => setIsDesktopMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Menu mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -338,6 +371,135 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                   href="/join"
                   className="block text-center bg-[#d3a936] text-white py-3 font-medium transition-all duration-300 hover:bg-[#a98c2f]"
                   onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Join
+                </a>
+                <p className="text-center mt-4 text-white/40 text-xs">
+                  Luxury in the skies
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Menu burger desktop */}
+      <AnimatePresence>
+        {isDesktopMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '-100%' }}
+            animate={{
+              opacity: 1,
+              x: 0,
+              transition: { type: "spring", stiffness: 300, damping: 30 }
+            }}
+            exit={{
+              opacity: 0,
+              x: '-100%',
+              transition: { type: "spring", stiffness: 300, damping: 30 }
+            }}
+            className="fixed left-0 top-0 bottom-0 z-50 w-80 bg-[#193650] shadow-2xl hidden lg:block"
+            style={{
+              fontFamily: 'Century Gothic, sans-serif',
+              borderRadius: 0,
+              margin: 0
+            }}
+          >
+            <div className="flex flex-col h-full p-6">
+              {/* En-tête du menu */}
+              <div className="flex justify-between items-center mb-8">
+                <motion.button
+                  onClick={() => setIsDesktopMenuOpen(false)}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="text-white/80 hover:text-white p-2"
+                  aria-label="Close menu"
+                >
+                  <FiX size={20} />
+                </motion.button>
+
+                <img
+                  src="/images/logo_footer.png"
+                  alt="EnvyJet"
+                  className="h-8 w-auto"
+                />
+              </div>
+
+              {/* Navigation burger desktop */}
+              <div className="flex flex-col space-y-1">
+                {burgerMenuItems.map((item, index) => (
+                  <motion.a
+                    key={item.label}
+                    href={item.href}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 + index * 0.1 }}
+                    whileHover={{
+                      x: 8,
+                      backgroundColor: 'rgba(169,140,47,0.15)',
+                    }}
+                    className="flex justify-between items-center text-lg text-white/90 hover:text-white py-3 px-4 border-b border-white/10"
+                    onClick={() => setIsDesktopMenuOpen(false)}
+                  >
+                    <span className="font-medium">{item.label}</span>
+                  </motion.a>
+                ))}
+              </div>
+
+              {/* Contacts burger desktop */}
+              <div className="py-6 border-b border-white/10">
+                <div className="flex justify-center space-x-6">
+                  <motion.a
+                    href="tel:+2250759102503"
+                    whileHover={{ scale: 1.2 }}
+                    className="text-white/80 hover:text-white transition-colors flex items-center space-x-2"
+                  >
+                    <FiPhone size={22} />
+                  </motion.a>
+
+                  <motion.a
+                    href="https://wa.me/+2250759102503"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="text-[#25D366] hover:text-[#128C7E] transition-colors"
+                    aria-label="Contact us on WhatsApp"
+                  >
+                    <FaWhatsapp size={22} />
+                  </motion.a>
+
+                  <motion.button
+                    whileHover={{ scale: 1.2, rotate: 15 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="text-white/80 hover:text-white transition-colors"
+                    aria-label="Language selection"
+                  >
+                    <FiGlobe size={22} />
+                  </motion.button>
+                </div>
+
+                <motion.a
+                  href="tel:+2250759102503"
+                  className="block text-center text-white/70 hover:text-white mt-3 text-sm font-medium"
+                >
+                  +225 0759102503
+                </motion.a>
+              </div>
+
+              {/* Actions burger desktop */}
+              <div className="mt-auto pt-6 border-t border-white/10">
+                <a
+                  href="/login"
+                  className="block text-center text-white/90 hover:text-white py-3 border border-white/20 transition-all duration-300 font-medium mb-3"
+                  onClick={() => setIsDesktopMenuOpen(false)}
+                >
+                  Login
+                </a>
+                <a
+                  href="/join"
+                  className="block text-center bg-[#d3a936] text-white py-3 font-medium transition-all duration-300 hover:bg-[#a98c2f]"
+                  onClick={() => setIsDesktopMenuOpen(false)}
                 >
                   Join
                 </a>

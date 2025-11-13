@@ -72,7 +72,7 @@ const EmptyLegsPage = () => {
 
   // Configuration de la pagination
   const itemsPerPage = 6;
-  const priceIndicator = "Up to"; // Indicateur standard pour les Empty Legs
+  const priceIndicator = "From";
 
   /**
    * Données mockées des vols Empty Legs disponibles

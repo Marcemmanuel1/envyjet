@@ -113,7 +113,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
           {/* Section image - cliquable pour ouvrir la galerie */}
           <div
-            className="md:w-80 h-48 md:h-auto cursor-pointer"
+            className="md:w-60 h-48 md:h-auto cursor-pointer"
             onClick={handleImageClick}
           >
             <img

@@ -131,11 +131,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
   };
 
   return (
-    <div className="shadow-lg md:p-2 py-6 max-w-full mx-auto md:w-full">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-[1px]">
+    <div className="shadow-lg w-full py-6 max-w-[100%] mx-auto md:w-full">
+      <div className="grid grid-cols-1 md:grid-cols-11 gap-[1px]">
 
         {/* Champ de recherche "From" avec autocomplétion */}
-        <div className="relative">
+        <div className="relative md:col-span-3">
           <input
             type="text"
             placeholder="From"
@@ -164,7 +164,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
         </div>
 
         {/* Champ de recherche "To" avec autocomplétion */}
-        <div className="relative">
+        <div className="relative md:col-span-3">
           <input
             type="text"
             placeholder="To"
@@ -193,7 +193,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
         </div>
 
         {/* Sélecteur de date */}
-        <div className="relative">
+        <div className="relative md:col-span-2">
           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
           <input
             type="date"
@@ -229,7 +229,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
         {/* Bouton de recherche */}
         <button
           onClick={handleSearch}
-          className="bg-[#d3a936] hover:bg-[#b8922e] text-white font-semibold py-3 px-6 transition-colors duration-200"
+          className="bg-[#d3a936] hover:bg-[#b8922e] md:col-span-2 text-white font-semibold py-3 px-6 transition-colors duration-200"
         >
           SEARCH
         </button>

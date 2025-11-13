@@ -27,7 +27,6 @@ import {
 import { BiBriefcase } from 'react-icons/bi';
 import { MdLuggage, MdPets } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
-
 // Import Swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
@@ -1826,6 +1825,12 @@ export default function Home() {
     console.log('Flight booked:', formData);
     await new Promise(resolve => setTimeout(resolve, 2000));
   };
+  const router = useRouter();
+
+  const handleRedirect = () => {
+    // Redirige l'utilisateur vers la route '/details' de votre application
+    router.push('/why-envyjet');
+  };
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1981,6 +1986,7 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <motion.button
+                  onClick={handleRedirect} // <-- C'est ici qu'on ajoute l'action de redirection
                   whileHover={{ scale: 1.05, backgroundColor: "#a98c2f" }}
                   whileTap={{ scale: 0.95 }}
                   className="bg-[#d3a936] text-white px-6 py-3 font-medium text-sm lg:text-base"
