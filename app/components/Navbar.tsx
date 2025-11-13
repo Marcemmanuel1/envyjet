@@ -54,6 +54,9 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
     { label: 'DESTINATIONS', href: '/destinations' }
   ];
 
+  // Tous les liens combinés pour le menu mobile
+  const allMobileMenuItems = [...menuItems, ...burgerMenuItems];
+
   return (
     <>
       <motion.nav
@@ -296,9 +299,9 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 />
               </div>
 
-              {/* Navigation mobile */}
+              {/* Navigation mobile - TOUS LES LIENS */}
               <div className="flex flex-col space-y-1">
-                {menuItems.map((item, index) => (
+                {allMobileMenuItems.map((item, index) => (
                   <motion.a
                     key={item.label}
                     href={item.href}
@@ -317,49 +320,8 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 ))}
               </div>
 
-              {/* Contacts mobiles */}
-              <div className="py-6 border-b border-white/10">
-                <div className="flex justify-center space-x-6">
-                  <motion.a
-                    href="tel:+2250759102503"
-                    whileHover={{ scale: 1.2 }}
-                    className="text-white/80 hover:text-white transition-colors flex items-center space-x-2"
-                  >
-                    <FiPhone size={22} />
-                  </motion.a>
-
-                  <motion.a
-                    href="https://wa.me/+2250759102503"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="text-[#25D366] hover:text-[#128C7E] transition-colors"
-                    aria-label="Contact us on WhatsApp"
-                  >
-                    <FaWhatsapp size={22} />
-                  </motion.a>
-
-                  <motion.button
-                    whileHover={{ scale: 1.2, rotate: 15 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="text-white/80 hover:text-white transition-colors"
-                    aria-label="Language selection"
-                  >
-                    <FiGlobe size={22} />
-                  </motion.button>
-                </div>
-
-                <motion.a
-                  href="tel:+2250759102503"
-                  className="block text-center text-white/70 hover:text-white mt-3 text-sm font-medium"
-                >
-                  +225 0759102503
-                </motion.a>
-              </div>
-
               {/* Actions mobiles */}
-              <div className="mt-auto pt-6 border-t border-white/10">
+              <div className="mt-auto pt-1">
                 <a
                   href="/login"
                   className="block text-center text-white/90 hover:text-white py-3 border border-white/20 transition-all duration-300 font-medium mb-3"
@@ -374,9 +336,6 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 >
                   Join
                 </a>
-                <p className="text-center mt-4 text-white/40 text-xs">
-                  Luxury in the skies
-                </p>
               </div>
             </div>
           </motion.div>
@@ -444,47 +403,6 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                     <span className="font-medium">{item.label}</span>
                   </motion.a>
                 ))}
-              </div>
-
-              {/* Contacts burger desktop */}
-              <div className="py-6 border-b border-white/10">
-                <div className="flex justify-center space-x-6">
-                  <motion.a
-                    href="tel:+2250759102503"
-                    whileHover={{ scale: 1.2 }}
-                    className="text-white/80 hover:text-white transition-colors flex items-center space-x-2"
-                  >
-                    <FiPhone size={22} />
-                  </motion.a>
-
-                  <motion.a
-                    href="https://wa.me/+2250759102503"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="text-[#25D366] hover:text-[#128C7E] transition-colors"
-                    aria-label="Contact us on WhatsApp"
-                  >
-                    <FaWhatsapp size={22} />
-                  </motion.a>
-
-                  <motion.button
-                    whileHover={{ scale: 1.2, rotate: 15 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="text-white/80 hover:text-white transition-colors"
-                    aria-label="Language selection"
-                  >
-                    <FiGlobe size={22} />
-                  </motion.button>
-                </div>
-
-                <motion.a
-                  href="tel:+2250759102503"
-                  className="block text-center text-white/70 hover:text-white mt-3 text-sm font-medium"
-                >
-                  +225 0759102503
-                </motion.a>
               </div>
 
               {/* Actions burger desktop */}
