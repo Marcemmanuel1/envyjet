@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { FaXTwitter } from 'react-icons/fa6';
 import {
   FiFacebook,
-  FiTwitter,
   FiInstagram,
   FiLinkedin,
   FiMail,
@@ -18,17 +18,16 @@ const Footer = () => {
     {
       title: 'Services',
       links: [
-        { label: 'Private Jet Charter', href: '/services/charter' },
+        { label: 'Private Jet Charter', href: '/jet-charter' },
         { label: 'Shared Flights', href: '/shared-flights' },
         { label: 'Empty Legs', href: '/empty-legs' },
-        { label: 'Nectar Program', href: '/nectar' },
-        { label: 'Group Travel', href: '/services/group' }
+        { label: 'Nectar Program', href: '/nectar' }
       ]
     },
     {
       title: 'Company',
       links: [
-        { label: 'About Us', href: '/about' },
+        { label: 'About Us', href: '/whiy-envyjet' },
         { label: 'Our Fleet', href: '/fleet' },
         { label: 'Safety', href: '/safety' },
         { label: 'Careers', href: '/careers' },
@@ -48,10 +47,11 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: FiFacebook, href: '#', label: 'Facebook' },
-    { icon: FiTwitter, href: '#', label: 'Twitter' },
-    { icon: FiInstagram, href: '#', label: 'Instagram' },
-    { icon: FiLinkedin, href: '#', label: 'LinkedIn' }
+    // CORRECTION : Suppression de la virgule excédentaire après le premier objet
+    { icon: FiFacebook, href: 'https://www.facebook.com/people/EnvyJet/61560917589738/', label: 'Facebook' },
+    { icon: FiLinkedin, href: 'https://www.linkedin.com/company/envyjet/', label: 'LinkedIn' },
+    { icon: FiInstagram, href: 'https://www.instagram.com/envyjet/', label: 'Instagram' },
+    { icon: FaXTwitter, href: 'https://x.com/EnvyJet', label: 'Twitter' }
   ];
 
   return (
@@ -152,6 +152,9 @@ const Footer = () => {
                 <motion.a
                   key={social.label}
                   href={social.href}
+                  // Ajout des attributs pour les liens externes
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, y: -2 }}
                   className="text-white/60 hover:text-[#D08A10] transition-colors duration-300"
                   aria-label={social.label}

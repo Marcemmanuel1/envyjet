@@ -206,17 +206,21 @@ const SERVICES_DATA = [
   {
     title: "Exclusive private jet charter",
     description: "From your starting point to your final destination, relax with complete peace of mind.",
-    image: "/images/service-private-jet.jpg"
+    image: "/images/service-private-jet.jpg",
+    fileUrl: "/jet-charter"
   },
   {
     title: "Shared Flights",
     description: "Discover the exclusive EnvyJet experience with our shared jet flights.",
-    image: "/images/service-shared-flights.jpg"
+    image: "/images/service-shared-flights.jpg",
+    fileUrl: "/shared-charter"
+
   },
   {
     title: "Empty Legs",
     description: "EnvyJet offers you a unique opportunity to save money.",
-    image: "/images/service-empty-legs.jpg"
+    image: "/images/service-empty-legs.jpg",
+    fileUrl: "/empty-charter"
   }
 ] as const;
 
@@ -2101,13 +2105,18 @@ export default function Home() {
                 >
                   {service.description}
                 </p>
-                <button
-                  className="text-[#a98c2f] font-medium text-sm lg:text-base group-hover:underline flex items-center space-x-2"
+                <motion.a
+                  href={service.fileUrl || "/documents/default_info.pdf"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#a98c2f] font-medium text-sm lg:text-base group-hover:underline flex items-center space-x-2 cursor-pointer"
                   style={{ fontFamily: 'Century Gothic, sans-serif' }}
+                  // Animation conservée pour le lien
+                  whileHover={{ scale: 1.02 }}
                 >
                   <span>MORE INFO</span>
                   <FiArrowRight size={16} />
-                </button>
+                </motion.a>
               </motion.div>
             ))}
           </div>

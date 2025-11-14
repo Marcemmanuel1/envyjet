@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiPhone, FiMail, FiMapPin, FiFacebook, FiTwitter, FiInstagram, FiLinkedin } from 'react-icons/fi';
+import { FiPhone, FiMail, FiMapPin, FiFacebook, FiInstagram, FiLinkedin } from 'react-icons/fi';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
+import { FaXTwitter } from 'react-icons/fa6';
 
 // =============================================================================
 // DONNÉES DES BUREAUX
@@ -12,25 +13,25 @@ import Navbar from '../components/Navbar';
 
 const OFFICE_LOCATIONS = [
   {
+    city: "Abidjan",
+    phone: "+225 27 22 58 42 00",
+    address: "Plateau, Boulevard de la République",
+    fullAddress: "Plateau, Boulevard de la République, Abidjan, Côte d'Ivoire",
+    image: "/images/abidjan.jpeg"
+  },
+  {
+    city: "Lagos",
+    phone: "+234 807 727 7555",
+    address: "Murtala Muhammed International Airport (LOS)",
+    fullAddress: "Murtala Muhammed International Airport (LOS), Ikeja, Lagos, Nigeria",
+    image: "/images/lagos.jpg"
+  },
+  {
     city: "Londres",
     phone: "+44 20 7946 0958",
     address: "London City Airport, Royal Docks",
     fullAddress: "London City Airport, Royal Docks, London E16 2PX",
     image: "/images/londre.avif"
-  },
-  {
-    city: "Abidjan",
-    phone: "+225 27 22 58 42 00",
-    address: "Plateau, Boulevard de la République",
-    fullAddress: "Plateau, Boulevard de la République, Abidjan, Côte d'Ivoire",
-    image: "/images/catedrale.jpg"
-  },
-  {
-    city: "Lomé",
-    phone: "+228 22 21 45 67",
-    address: "Lomé-Tokoin Airport, Zone Aéroportuaire",
-    fullAddress: "Lomé-Tokoin Airport, Zone Aéroportuaire, Lomé, Togo",
-    image: "/images/lome.jpg"
   }
 ];
 
@@ -87,9 +88,9 @@ const SOCIAL_MEDIA = [
     url: "https://facebook.com/envyjet"
   },
   {
-    name: "Twitter",
-    icon: <FiTwitter size={24} />,
-    url: "https://twitter.com/envyjet"
+    name: "LinkedIn",
+    icon: <FiLinkedin size={24} />,
+    url: "https://linkedin.com/company/envyjet"
   },
   {
     name: "Instagram",
@@ -97,9 +98,9 @@ const SOCIAL_MEDIA = [
     url: "https://instagram.com/envyjet"
   },
   {
-    name: "LinkedIn",
-    icon: <FiLinkedin size={24} />,
-    url: "https://linkedin.com/company/envyjet"
+    name: "Twitter",
+    icon: <FaXTwitter size={24} />,
+    url: "https://twitter.com/envyjet"
   }
 ];
 

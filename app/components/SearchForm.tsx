@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, User, Plus, Minus } from 'lucide-react';
 
 interface Airport {
@@ -38,12 +38,20 @@ const SearchForm: React.FC<SearchFormProps> = ({
   const [searchTo, setSearchTo] = useState(initialTo);
   const [searchDate, setSearchDate] = useState(initialDate);
 
+  // États pour gérer le focus (afficher le texte complet ou tronqué)
+  const [isFromFocused, setIsFromFocused] = useState(false);
+  const [isToFocused, setIsToFocused] = useState(false);
+
   // États pour la gestion des aéroports et suggestions
   const [airports, setAirports] = useState<Airport[]>([]);
   const [filteredFromAirports, setFilteredFromAirports] = useState<Airport[]>([]);
   const [filteredToAirports, setFilteredToAirports] = useState<Airport[]>([]);
   const [showFromSuggestions, setShowFromSuggestions] = useState(false);
   const [showToSuggestions, setShowToSuggestions] = useState(false);
+
+  // Refs pour les inputs
+  const fromInputRef = useRef<HTMLInputElement>(null);
+  const toInputRef = useRef<HTMLInputElement>(null);
 
   // Chargement initial de la base de données des aéroports
   useEffect(() => {
@@ -72,12 +80,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
       ).slice(0, 8);
 
       setFilteredFromAirports(filtered);
-      setShowFromSuggestions(filtered.length > 0);
+      setShowFromSuggestions(filtered.length > 0 && isFromFocused);
     } else {
       setFilteredFromAirports([]);
       setShowFromSuggestions(false);
     }
-  }, [searchFrom, airports]);
+  }, [searchFrom, airports, isFromFocused]);
 
   // Filtrage des aéroports pour le champ "To"
   useEffect(() => {
@@ -91,12 +99,18 @@ const SearchForm: React.FC<SearchFormProps> = ({
       ).slice(0, 8);
 
       setFilteredToAirports(filtered);
-      setShowToSuggestions(filtered.length > 0);
+      setShowToSuggestions(filtered.length > 0 && isToFocused);
     } else {
       setFilteredToAirports([]);
       setShowToSuggestions(false);
     }
-  }, [searchTo, airports]);
+  }, [searchTo, airports, isToFocused]);
+
+  // Fonction pour tronquer le texte
+  const truncateText = (text: string, maxLength: number = 25): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
 
   // Gestion de la soumission du formulaire
   const handleSearch = () => {
@@ -113,12 +127,46 @@ const SearchForm: React.FC<SearchFormProps> = ({
     const code = airport.iata_code || airport.icao_code;
     setSearchFrom(`${airport.municipality}, ${airport.name} (${code})`);
     setShowFromSuggestions(false);
+    setIsFromFocused(false);
   };
 
   const selectToAirport = (airport: Airport) => {
     const code = airport.iata_code || airport.icao_code;
     setSearchTo(`${airport.municipality}, ${airport.name} (${code})`);
     setShowToSuggestions(false);
+    setIsToFocused(false);
+  };
+
+  // Gestion du focus sur le champ "From"
+  const handleFromFocus = () => {
+    setIsFromFocused(true);
+    if (searchFrom.trim() && filteredFromAirports.length > 0) {
+      setShowFromSuggestions(true);
+    }
+  };
+
+  const handleFromBlur = () => {
+    // Délai pour permettre le clic sur les suggestions
+    setTimeout(() => {
+      setIsFromFocused(false);
+      setShowFromSuggestions(false);
+    }, 200);
+  };
+
+  // Gestion du focus sur le champ "To"
+  const handleToFocus = () => {
+    setIsToFocused(true);
+    if (searchTo.trim() && filteredToAirports.length > 0) {
+      setShowToSuggestions(true);
+    }
+  };
+
+  const handleToBlur = () => {
+    // Délai pour permettre le clic sur les suggestions
+    setTimeout(() => {
+      setIsToFocused(false);
+      setShowToSuggestions(false);
+    }, 200);
   };
 
   // Gestion des touches pour la navigation au clavier
@@ -126,7 +174,15 @@ const SearchForm: React.FC<SearchFormProps> = ({
     if (e.key === 'Enter') {
       handleSearch();
     } else if (e.key === 'Escape') {
-      type === 'from' ? setShowFromSuggestions(false) : setShowToSuggestions(false);
+      if (type === 'from') {
+        setShowFromSuggestions(false);
+        setIsFromFocused(false);
+        fromInputRef.current?.blur();
+      } else {
+        setShowToSuggestions(false);
+        setIsToFocused(false);
+        toInputRef.current?.blur();
+      }
     }
   };
 
@@ -137,12 +193,16 @@ const SearchForm: React.FC<SearchFormProps> = ({
         {/* Champ de recherche "From" avec autocomplétion */}
         <div className="relative md:col-span-3">
           <input
+            ref={fromInputRef}
             type="text"
             placeholder="From"
-            value={searchFrom}
+            value={isFromFocused ? searchFrom : truncateText(searchFrom)}
             onChange={(e) => setSearchFrom(e.target.value)}
+            onFocus={handleFromFocus}
+            onBlur={handleFromBlur}
             onKeyDown={(e) => handleKeyPress(e, 'from')}
             className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
+            title={searchFrom} // Tooltip au survol
           />
           {showFromSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">
@@ -166,12 +226,16 @@ const SearchForm: React.FC<SearchFormProps> = ({
         {/* Champ de recherche "To" avec autocomplétion */}
         <div className="relative md:col-span-3">
           <input
+            ref={toInputRef}
             type="text"
             placeholder="To"
-            value={searchTo}
+            value={isToFocused ? searchTo : truncateText(searchTo)}
             onChange={(e) => setSearchTo(e.target.value)}
+            onFocus={handleToFocus}
+            onBlur={handleToBlur}
             onKeyDown={(e) => handleKeyPress(e, 'to')}
             className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
+            title={searchTo} // Tooltip au survol
           />
           {showToSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">

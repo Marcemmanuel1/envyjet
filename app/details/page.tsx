@@ -341,7 +341,7 @@ export default function Details() {
    */
   const handleCancel = (): void => {
     sessionStorage.removeItem('bookingData');
-    router.push('/');
+    router.back();
   };
 
   /**
