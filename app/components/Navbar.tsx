@@ -74,8 +74,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
           }`}
         style={{ fontFamily: 'Century Gothic, sans-serif' }}
       >
-        {/* Container modifié avec moins de marge et plus d'espace */}
-        <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 flex justify-between items-center">
+        <div className="max-w-7xl md:max-w-full mx-auto px-2 sm:px-3 lg:px-4 flex justify-between items-center">
           {/* Logo et menu burger */}
           <div className="flex items-center space-x-3 sm:space-x-4">
             {/* Bouton menu burger desktop */}
@@ -119,10 +118,10 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
             </motion.a>
           </div>
 
-          {/* Navigation desktop - Container modifié pour prendre plus d'espace */}
+          {/* Navigation desktop  */}
           <div className="hidden lg:flex items-center flex-1 justify-between ml-8">
             {/* Menu principal avec plus d'espace */}
-            <div className="flex items-center space-x-10 xl:space-x-12 2xl:space-x-16">
+            <div className="flex items-center space-x-10 xl:space-x-12 2xl:space-x-8">
               {menuItems.map((item) => (
                 <motion.a
                   key={item.label}

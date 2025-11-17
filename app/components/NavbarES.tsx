@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiGlobe } from 'react-icons/fi';
-import { FaWhatsapp } from 'react-icons/fa';
+import { FiMenu, FiX } from 'react-icons/fi';
+import BookingForm from './BookingForm';
 
 interface NavbarProps {
   transparent?: boolean;
@@ -13,6 +13,7 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
+  const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
 
   useEffect(() => {
     if (!transparent) {
@@ -48,6 +49,17 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
 
   const linkTextClass = isScrolled ? 'text-[#193650]' : 'text-white/90';
 
+  const handleFormSubmit = async (formData: any) => {
+    console.log('Flight booked:', formData);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsBookingFormOpen(false);
+  };
+
+  const handleBookingClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsBookingFormOpen(!isBookingFormOpen);
+  };
+
   return (
     <>
       <motion.nav
@@ -64,7 +76,7 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
           }`}
         style={{ fontFamily: 'Century Gothic, sans-serif' }}
       >
-        <div className="flex items-center w-full max-w-[1400px] mx-auto px-4 sm:px-6">
+        <div className="flex items-center w-full max-w-full mx-auto px-4 sm:px-6">
 
           {/* Burger desktop */}
           <motion.button
@@ -127,16 +139,55 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
           </div>
         </div>
 
-        {/* BOOK A JET */}
-        <a
-          href="/book"
-          className="bg-[#d4a93a] text-white flex items-center justify-center py-4 font-bold text-sm w-[12rem] uppercase tracking-wider hover:bg-[#c09830] h-full transition-colors duration-300"
+        {/* BOOK A JET / X Button */}
+        <button
+          onClick={handleBookingClick}
+          className={`flex items-center justify-center py-4 font-bold text-sm w-[12rem] uppercase tracking-wider h-full transition-all duration-300 ${isBookingFormOpen
+            ? 'bg-[#c09830] text-white'
+            : 'bg-[#d4a93a] text-white hover:bg-[#c09830]'
+            }`}
         >
-          BOOK A JET
-        </a>
+          {isBookingFormOpen ? (
+            <FiX size={24} className="text-white" />
+          ) : (
+            'BOOK A JET'
+          )}
+        </button>
       </motion.nav>
 
-      {/* Mobile & Desktop menus (reste inchangé) */}
+      {/* Formulaire de réservation sous la navbar */}
+      <AnimatePresence>
+        {isBookingFormOpen && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setIsBookingFormOpen(false)}
+            />
+
+            {/* Formulaire avec scroll */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="fixed top-16 left-0 right-0 bottom-0 z-50 px-4 py-6 overflow-hidden"
+            >
+              <div className="container mx-auto max-w-7xl h-full flex flex-col">
+                {/* Container scrollable */}
+                <div className=" shadow-xl overflow-y-auto max-h-full">
+                  <BookingForm onSubmit={handleFormSubmit} />
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Reste du code inchangé */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -175,7 +226,6 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
             className="fixed left-0 top-0 bottom-0 z-50 w-80 bg-[#193650] shadow-2xl overflow-y-auto lg:hidden"
           >
             <div className="flex flex-col h-full p-6">
-              {/* Header fixe */}
               <div className="flex justify-between items-center mb-8 flex-shrink-0">
                 <motion.button
                   onClick={() => setIsMobileMenuOpen(false)}
