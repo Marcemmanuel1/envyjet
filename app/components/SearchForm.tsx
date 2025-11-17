@@ -32,11 +32,20 @@ const SearchForm: React.FC<SearchFormProps> = ({
   initialDate = '',
   initialPassengers = 1
 }) => {
+  // Fonction pour obtenir la date du jour au format YYYY-MM-DD
+  const getTodayDate = (): string => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // États pour les champs de recherche
   const [passengers, setPassengers] = useState(initialPassengers);
   const [searchFrom, setSearchFrom] = useState(initialFrom);
   const [searchTo, setSearchTo] = useState(initialTo);
-  const [searchDate, setSearchDate] = useState(initialDate);
+  const [searchDate, setSearchDate] = useState(initialDate || getTodayDate());
 
   // États pour gérer le focus (afficher le texte complet ou tronqué)
   const [isFromFocused, setIsFromFocused] = useState(false);
@@ -67,6 +76,13 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
     loadAirports();
   }, []);
+
+  // Initialisation de la date du jour si aucune date initiale n'est fournie
+  useEffect(() => {
+    if (!initialDate) {
+      setSearchDate(getTodayDate());
+    }
+  }, [initialDate]);
 
   // Filtrage des aéroports pour le champ "From"
   useEffect(() => {
@@ -201,7 +217,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             onFocus={handleFromFocus}
             onBlur={handleFromBlur}
             onKeyDown={(e) => handleKeyPress(e, 'from')}
-            className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
+            className="w-full bg-white px-4 py-4 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
             title={searchFrom} // Tooltip au survol
           />
           {showFromSuggestions && (
@@ -234,7 +250,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             onFocus={handleToFocus}
             onBlur={handleToBlur}
             onKeyDown={(e) => handleKeyPress(e, 'to')}
-            className="w-full bg-white px-4 py-5 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
+            className="w-full bg-white px-4 py-4 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
             title={searchTo} // Tooltip au survol
           />
           {showToSuggestions && (
@@ -263,13 +279,13 @@ const SearchForm: React.FC<SearchFormProps> = ({
             type="date"
             value={searchDate}
             onChange={(e) => setSearchDate(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
-            className="w-full bg-white px-4 py-5 pl-10 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
+            min={getTodayDate()}
+            className="w-full bg-white px-4 py-4 pl-10 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
           />
         </div>
 
         {/* Sélecteur du nombre de passagers */}
-        <div className="bg-white flex items-center justify-between border border-gray-300 px-4 py-3">
+        <div className="bg-white flex items-center justify-between border border-gray-300 px-4 py-2">
           <User className="text-gray-400 w-5 h-5" />
           <span className="flex-1 text-center font-semibold">{passengers}</span>
           <div className="flex flex-col gap-1">

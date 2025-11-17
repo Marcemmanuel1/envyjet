@@ -1177,7 +1177,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
       )}
 
       {/* Grille responsive pour les champs du formulaire */}
-      <div className="grid grid-cols-1 md:grid-cols-15 gap-1">
+      <div className="grid grid-cols-1 md:grid-cols-15 gap-[1px]">
         {/* Champ aéroport de départ */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
           <AirportInput
@@ -1224,7 +1224,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
         </motion.div>
 
         {/* Section des options : passagers, animaux, bagages */}
-        <div className="grid grid-cols-3 sm:grid-cols-3 gap-1 md:col-span-3 ">
+        <div className="grid grid-cols-3 sm:grid-cols-3 gap-[1px] md:col-span-3 ">
           <div>
             <PassengersDropdown
               passengers={formData.passengers}
@@ -1383,7 +1383,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
           Outbound
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-14 gap-1">
+        <div className="grid grid-cols-1 md:grid-cols-14 gap-[1px]">
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
             <AirportInput
               value={formData.outbound.from}
@@ -1431,7 +1431,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-3 gap-1 md:col-span-3 ">
+          <div className="grid grid-cols-3 sm:grid-cols-3 gap-[1px] md:col-span-3 ">
             <div className="w-full">
               <PassengersDropdown
                 passengers={formData.outbound.passengers}
@@ -1461,7 +1461,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
       {/* Section Vol Retour */}
       <div className="space-y-3">
         <h3 className="text-white text-base font-medium" style={{ fontFamily: 'Century Gothic, sans-serif' }}>Inbound</h3>
-        <div className="grid grid-cols-1 md:grid-cols-14 gap-1">
+        <div className="grid grid-cols-1 md:grid-cols-14 gap-[1px]">
           <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
             <AirportInput
               value={formData.return.from || formData.outbound.to}
@@ -1502,7 +1502,7 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
               required
             />
           </motion.div>
-          <div className='grid grid-cols-3 sm:grid-cols-3 gap-1 md:col-span-3'>
+          <div className='grid grid-cols-3 sm:grid-cols-3 gap-[1px] md:col-span-3'>
             <div>
               <PassengersDropdown
                 passengers={formData.return.passengers}
@@ -1648,7 +1648,7 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-14 gap-1">
+            <div className="grid grid-cols-1 md:grid-cols-14 gap-[1px]">
               <div className="relative md:col-span-3">
                 <AirportInput
                   value={leg.from}
@@ -1696,7 +1696,7 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-1 md:col-span-3">
+              <div className="grid grid-cols-3 gap-[1px] md:col-span-3">
                 <PassengersDropdown
                   passengers={leg.passengers}
                   onChange={(passengers) => updateLeg(index, 'passengers', passengers)}
@@ -1715,11 +1715,11 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
         ))}
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-[1px]">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full md:w-[20%] bg-[#d3a936] text-white py-3 lg:py-4 font-medium text-base lg:text-lg hover:bg-[#a98c2f] hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-[66%] md:w-[20%] bg-[#d3a936] text-white py-3 lg:py-4 font-medium text-base lg:text-lg hover:bg-[#a98c2f] hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: 'Century Gothic, sans-serif' }}
         >
           {isSubmitting ? (
@@ -1925,7 +1925,7 @@ export default function Home() {
       <section className="relative min-h-screen flex flex-col items-center justify-center w-full overflow-hidden" style={{ margin: 0, padding: 0 }}>
         <VideoBackground />
 
-        <div className="relative z-10 w-full flex-1 flex items-center justify-center px-4 pt-20 pb-8">
+        <div className="relative z-10 w-full flex-1 flex items-center justify-center px-4 md:px-0 pt-20 pb-8">
           <div className="text-white text-center max-w-5xl">
             <motion.h1
               initial={{ opacity: 0, y: 30 }}

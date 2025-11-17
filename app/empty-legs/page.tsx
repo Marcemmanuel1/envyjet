@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Navbar from "../components/Navbar";
+import Navbar from "../components/NavbarES";
 import Footer from "../components/Footer";
 import SearchForm from "../components/SearchForm";
 import FlightCard from "../components/FlightCard";
 import Pagination from "../components/Pagination";
 import { useRouter } from 'next/navigation';
+import NavbarES from '../components/NavbarES';
 
 /**
  * Interface complète pour représenter un vol Empty Leg
@@ -388,7 +389,7 @@ const EmptyLegsPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <NavbarES />
 
       {/* Section Hero avec image de fond et overlay */}
       <div
@@ -399,7 +400,7 @@ const EmptyLegsPage = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900/70 to-gray-800/50"></div>
 
-        <div className="relative container mx-auto px-4 h-full flex flex-col justify-center">
+        <div className="relative container mx-auto h-full flex flex-col justify-center">
           <h1 className="text-3xl text-center md:text-left md:text-2xl text-white mb-4">
             EMPTY LEGS CHARTER FLIGHTS
           </h1>
@@ -419,7 +420,7 @@ const EmptyLegsPage = () => {
         <div className="max-w-7xl mx-auto">
           {/* En-tête avec compteur de résultats */}
           <h2 className="text-2xl text-[#b8922e] mb-8">
-            {filteredFlights.length} {filteredFlights.length === 1 ? 'flight' : 'flights'}
+            {filteredFlights.length} {filteredFlights.length === 1 ? 'Matche' : 'Matches'}
           </h2>
 
           {/* Grille des vols ou message d'absence de résultats */}
@@ -449,10 +450,10 @@ const EmptyLegsPage = () => {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-600 text-lg">
-                No flights found matching your search criteria.
+                No Matches found matching your search criteria.
               </p>
               <p className="text-gray-500 mt-2">
-                Try adjusting your search filters or browse all available flights.
+                Try adjusting your search filters or browse all available Matches.
               </p>
             </div>
           )}

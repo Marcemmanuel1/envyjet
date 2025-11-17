@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import SearchForm from "../components/SearchForm";
 import FlightCard from "../components/FlightCard";
 import Pagination from "../components/Pagination";
 import FlightDetailsModal from "../components/FlightDetailsModal";
 import { useRouter } from 'next/navigation';
+import NavbarSE from '../components/NavbarES';
 
 /**
  * Interface complète pour représenter un vol partagé (Shared Flight)
@@ -576,7 +576,7 @@ const SharedFlightsPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <NavbarSE />
 
       {/* Section Hero avec image de fond et overlay */}
       <div

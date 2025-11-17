@@ -215,7 +215,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/75 bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white z-10 max-w-6xl w-full h-[95vh] overflow-y-auto">
+      <div className="bg-white z-10 max-w-6xl w-full h-[60vh] overflow-y-auto">
 
         {/* En-tête de la modale */}
         <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-[1001]">
@@ -273,7 +273,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
                   </button>
 
                   {openDropdown === 'passengers' && (
-                    <div className="absolute top-full left-0 bg-white border border-gray-200 border-t-0 shadow-lg z-[1000] p-4 space-y-4 mt-2 min-w-[250px] whitespace-nowrap">
+                    <div className="absolute bottom-full left-0 bg-white border border-gray-200 border-t-0 shadow-lg z-[1000] p-4 space-y-4 mt-2 min-w-[250px] whitespace-nowrap">
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-medium">Adults</p>
@@ -331,7 +331,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
                   </button>
 
                   {openDropdown === 'pets' && (
-                    <div className="absolute top-full left-0 bg-white border border-gray-200 border-t-0 shadow-lg z-[1000] p-4 space-y-4 mt-2 w-[200px] whitespace-nowrap">
+                    <div className="absolute bottom-full left-0 bg-white border border-gray-200 border-t-0 shadow-lg z-[1000] p-4 space-y-4 mt-2 w-[200px] whitespace-nowrap">
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-medium">Small</p>
@@ -378,7 +378,7 @@ const FlightDetailsModal: React.FC<FlightDetailsModalProps> = ({
                   </button>
 
                   {openDropdown === 'baggage' && (
-                    <div className="absolute top-full right-0 bg-white border border-gray-200 border-t-0 shadow-lg z-[1000] p-4 space-y-2 mt-2 max-h-80 overflow-y-auto min-w-[280px] whitespace-nowrap">
+                    <div className="absolute bottom-full right-0 bg-white border border-gray-200 border-t-0 shadow-lg z-[10000] p-4 space-y-2 mt-2 max-h-80 overflow-y-auto min-w-[280px] whitespace-nowrap">
                       <BaggageItem
                         label="En cabine"
                         value={cabinBags}

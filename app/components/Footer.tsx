@@ -21,14 +21,15 @@ const Footer = () => {
         { label: 'Private Jet Charter', href: '/jet-charter' },
         { label: 'Shared Flights', href: '/shared-flights' },
         { label: 'Empty Legs', href: '/empty-legs' },
-        { label: 'Nectar Program', href: '/nectar' }
+        { label: 'Nectar Program', href: '/nectar' },
+        { label: 'Groupe charter', href: '/groupe-charter' },
+        { label: 'Medevac, air ambulance', href: '/medevac-air-ambulance' }
       ]
     },
     {
       title: 'Company',
       links: [
         { label: 'About Us', href: '/whiy-envyjet' },
-        { label: 'Our Fleet', href: '/fleet' },
         { label: 'Safety', href: '/safety' },
         { label: 'Careers', href: '/careers' },
         { label: 'News', href: '/news' }
@@ -58,7 +59,7 @@ const Footer = () => {
     <footer className="bg-gray-900 text-white">
       {/* Main Footer */}
       <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 md:gap-40 gap-6">
           {/* Company Info */}
           <div className="lg:col-span-1">
             <motion.div
@@ -73,10 +74,6 @@ const Footer = () => {
                 alt="EnvyJet"
                 className="h-24 w-auto mb-4"
               />
-              <p className="text-white/70 leading-relaxed mb-6">
-                Experience unparalleled luxury with our premium private jet services.
-                Where every journey becomes an exclusive adventure.
-              </p>
 
               {/* Contact Info */}
               <div className="space-y-3">
@@ -122,7 +119,10 @@ const Footer = () => {
               </ul>
             </motion.div>
           ))}
+
         </div>
+        <p className='text-white/70 mt-6 lg:mt-10 text-sm'>
+          EnvyJet is a charter broker with a digital jet charter market place, and is not a direct air carrier. All flights advertised to which EnvyJet has access are owned and operated by a properly licensed third party air carrier with Part 135 and Part 121 authority from the Federal Aviation Administration (or other appropriate authority under US or foreign law) and Department of Transportation. EnvyJet does not carry additional liability insurance. Passengers are covered by aircraft operator insurance.        </p>
       </div>
 
       {/* Bottom Footer */}
