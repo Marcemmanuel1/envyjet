@@ -373,6 +373,21 @@ const EmptyLegsPage = () => {
   };
 
   /**
+   * Gère le changement de page de la pagination.
+   * Fait défiler la fenêtre vers le haut pour une meilleure UX.
+   * @param newPage - Le nouveau numéro de page à afficher.
+   */
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+
+    // Défilement de la fenêtre vers le haut sans recharger la page
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth', // Défilement fluide
+    });
+  };
+
+  /**
    * Initialisation des données au chargement du composant
    * Simule le chargement depuis une API
    */
@@ -400,7 +415,7 @@ const EmptyLegsPage = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900/70 to-gray-800/50"></div>
 
-        <div className="relative container mx-auto h-full flex flex-col justify-center">
+        <div className="relative container px-4 md:px-0 mx-auto h-full flex flex-col justify-center">
           <h1 className="text-3xl text-center md:text-left md:text-2xl text-white mb-4">
             EMPTY LEGS CHARTER FLIGHTS
           </h1>
@@ -416,8 +431,8 @@ const EmptyLegsPage = () => {
       </div>
 
       {/* Section des résultats */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-7xl mx-auto">
+      <div className="container mx-auto md:px-0 px-4 py-12">
+        <div className="max-w-full mx-auto">
           {/* En-tête avec compteur de résultats */}
           <h2 className="text-2xl text-[#b8922e] mb-8">
             {filteredFlights.length} {filteredFlights.length === 1 ? 'Matche' : 'Matches'}
@@ -441,7 +456,7 @@ const EmptyLegsPage = () => {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={handlePageChange} // Utilisation du nouveau gestionnaire
                   itemsPerPage={itemsPerPage}
                   totalItems={filteredFlights.length}
                 />
