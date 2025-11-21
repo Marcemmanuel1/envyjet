@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FiCalendar, FiClock } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
@@ -17,7 +17,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
     from: '',
     to: '',
     departureDate: getToday(), // Date du jour par défaut
-    departureTime: '00:00',
+    departureTime: '10:00',
     passengers: { adults: 1, children: 0, infants: 0 },
     pets: { small: 0, large: 0 },
     luggage: { carryOn: 0, holdLuggage: 0, skis: 0, golfBag: 0, others: 0 }
@@ -25,6 +25,18 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { submitForm, isSubmitting } = useFormSubmission();
   const router = useRouter();
+
+  // Ref pour l'input date caché
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  // Fonction pour formater la date au format "11, Oct, 2025"
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString('en', { month: 'short' });
+    const year = date.getFullYear();
+    return `${day}, ${month}, ${year}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +62,11 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
       setValidationErrors([]);
     }
   }, [validationErrors.length]);
+
+  // Fonction pour ouvrir le sélecteur de date
+  const handleDateClick = () => {
+    dateInputRef.current?.showPicker();
+  };
 
   return (
     <motion.form
@@ -89,17 +106,28 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
+        {/* Sélecteur de date avec format personnalisé */}
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
           <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
+          {/* Input date caché mais fonctionnel */}
           <input
+            ref={dateInputRef}
             type="date"
             value={formData.departureDate}
             onChange={(e) => handleInputChange('departureDate', e.target.value)}
             min={getToday()}
-            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] text-sm lg:text-base transition-all"
+            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 focus:outline-none focus:border-[#a98c2f] text-sm lg:text-base transition-all absolute opacity-0 pointer-events-none"
             style={{ fontFamily: 'Century Gothic, sans-serif' }}
             required
           />
+          {/* Div d'affichage avec le format personnalisé */}
+          <div
+            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 text-sm lg:text-base cursor-pointer"
+            style={{ fontFamily: 'Century Gothic, sans-serif' }}
+            onClick={handleDateClick}
+          >
+            {formatDate(formData.departureDate)}
+          </div>
         </motion.div>
 
         <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">

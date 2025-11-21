@@ -17,7 +17,7 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
     from: '',
     to: '',
     date: getToday(), // Date du jour par défaut
-    time: '00:00',
+    time: '10:00',
     passengers: { adults: 1, children: 0, infants: 0 },
     pets: { small: 0, large: 0 },
     luggage: { carryOn: 0, holdLuggage: 0, skis: 0, golfBag: 0, others: 0 }
@@ -27,6 +27,15 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { submitForm, isSubmitting } = useFormSubmission();
   const router = useRouter();
+
+  // Fonction pour formater la date au format "11, Oct, 2025"
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString('en', { month: 'short' });
+    const year = date.getFullYear();
+    return `${day}, ${month}, ${year}`;
+  };
 
   const addLeg = useCallback(() => {
     setLegs(prev => [...prev, { ...emptyLeg }]);
@@ -118,17 +127,31 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
+              {/* Sélecteur de date avec format personnalisé */}
               <div className="relative md:col-span-3">
                 <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={18} />
+                {/* Input date caché mais fonctionnel */}
                 <input
                   type="date"
                   value={leg.date}
                   onChange={(e) => updateLeg(index, 'date', e.target.value)}
                   min={index > 0 ? legs[index - 1].date : getToday()}
-                  className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-10 pr-4 py-[18px] focus:outline-none focus:border-[#a98c2f] text-sm transition-all"
+                  className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-10 pr-4 py-[18px] focus:outline-none focus:border-[#a98c2f] text-sm transition-all absolute opacity-0 pointer-events-none"
                   style={{ fontFamily: 'Century Gothic, sans-serif' }}
                   required
                 />
+                {/* Div d'affichage avec le format personnalisé */}
+                <div
+                  className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-10 pr-4 py-[18px] text-sm cursor-pointer"
+                  style={{ fontFamily: 'Century Gothic, sans-serif' }}
+                  onClick={() => {
+                    // Ouvre le sélecteur de date natif
+                    const dateInput = document.querySelector(`input[type="date"]:nth-child(${index * 2 + 1})`) as HTMLInputElement;
+                    dateInput?.showPicker();
+                  }}
+                >
+                  {formatDate(leg.date)}
+                </div>
               </div>
 
               <div className="relative md:col-span-2">

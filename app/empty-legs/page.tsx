@@ -1,19 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Navbar from "../components/NavbarES";
+import NavbarES from '../components/NavbarES';
 import Footer from "../components/Footer";
 import SearchForm from "../components/SearchForm";
 import FlightCard from "../components/FlightCard";
 import Pagination from "../components/Pagination";
-import { useRouter } from 'next/navigation';
-import NavbarES from '../components/NavbarES';
 
-/**
- * Interface complète pour représenter un vol Empty Leg
- * Un Empty Leg est un vol de repositionnement d'avion sans passagers
- * qui peut être vendu à prix réduit
- */
 interface Flight {
   id: number;
   departure: string;
@@ -28,44 +21,10 @@ interface Flight {
   codeTo: string;
   cityFrom: string;
   cityTo: string;
-  pricestarting: string; // Indicateur de prix ("Up to", "From", etc.)
+  pricestarting: string;
 }
 
-/**
- * Interface pour les données de date/heure extraites
- */
-interface DateTimeInfo {
-  date: string;
-  time: string;
-}
-
-/**
- * Interface pour les données de réservation sauvegardées en session
- */
-interface BookingData {
-  type: 'oneWay';
-  data: {
-    from: string;
-    to: string;
-    departureDate: string;
-    departureTime: string;
-    passengers: {
-      adults: number;
-      children: number;
-      infants: number;
-    };
-  };
-  timestamp: string;
-}
-
-/**
- * Page principale pour la recherche et réservation de vols Empty Legs
- * Les Empty Legs permettent de bénéficier de tarifs réduits sur des vols privés
- * lorsque l'avion doit se repositionner sans passagers
- */
 const EmptyLegsPage = () => {
-  const router = useRouter();
-
   // États pour la gestion de la pagination et des données
   const [currentPage, setCurrentPage] = useState(1);
   const [allFlights, setAllFlights] = useState<Flight[]>([]);
@@ -75,10 +34,7 @@ const EmptyLegsPage = () => {
   const itemsPerPage = 6;
   const priceIndicator = "From";
 
-  /**
-   * Données mockées des vols Empty Legs disponibles
-   * En production, ces données viendraient d'une API
-   */
+  // Données mockées des vols Empty Legs disponibles
   const flightsData: Flight[] = [
     {
       id: 1,
@@ -211,122 +167,10 @@ const EmptyLegsPage = () => {
   ];
 
   /**
-   * Parse une chaîne de date de départ pour extraire la date et l'heure
-   * Format d'entrée: "Thu 29 Oct 2026"
-   * @param departureString - Chaîne de date au format texte
-   * @returns Objet contenant la date au format ISO et l'heure par défaut
-   */
-  const extractDateTime = (departureString: string): DateTimeInfo => {
-    const parts = departureString.split(' ');
-
-    // Validation du format de date
-    if (parts.length < 4) {
-      console.warn(`Format de date invalide: ${departureString}`);
-      return { date: "", time: "" };
-    }
-
-    const day = parts[1];
-    const month = parts[2];
-    const year = parts[3];
-
-    // Mapping des mois pour conversion numérique
-    const months: { [key: string]: string } = {
-      'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
-      'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
-      'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
-    };
-
-    const monthNumber = months[month];
-    if (!monthNumber) {
-      console.warn(`Mois invalide: ${month}`);
-      return { date: "", time: "" };
-    }
-
-    return {
-      date: `${year}-${monthNumber}-${day.padStart(2, '0')}`,
-      time: "12:00" // Heure par défaut pour les Empty Legs
-    };
-  };
-
-  /**
-   * Formate les informations de l'aéroport de départ
-   * selon le format attendu par la page de détails
-   * @param flight - Objet vol contenant les informations d'aéroport
-   * @returns Chaîne formatée "CODE - Ville Airport, Ville"
-   */
-  const formatAirportString = (flight: Flight): string => {
-    return `${flight.codeFrom} - ${flight.cityFrom} Airport, ${flight.cityFrom}`;
-  };
-
-  /**
-   * Formate les informations de l'aéroport d'arrivée
-   * @param flight - Objet vol contenant les informations d'aéroport
-   * @returns Chaîne formatée "CODE - Ville Airport, Ville"
-   */
-  const formatArrivalAirportString = (flight: Flight): string => {
-    return `${flight.codeTo} - ${flight.cityTo} Airport, ${flight.cityTo}`;
-  };
-
-  /**
-   * Gère la navigation vers la page de détails d'un vol
-   * Sauvegarde les données de réservation en session storage
-   * @param flight - Vol sélectionné pour plus d'informations
-   */
-  const handleMoreInfo = (flight: Flight): void => {
-    try {
-      const { date, time } = extractDateTime(flight.departure);
-
-      // Validation des données essentielles
-      if (!date || !flight.codeFrom || !flight.codeTo) {
-        throw new Error('Données de vol incomplètes');
-      }
-
-      // Construction de l'objet de réservation avec la structure exacte attendue
-      const bookingData: BookingData = {
-        type: 'oneWay',
-        data: {
-          from: formatAirportString(flight),
-          to: formatArrivalAirportString(flight),
-          departureDate: date,
-          departureTime: time,
-          passengers: {
-            adults: 1,  // Valeur par défaut
-            children: 0,
-            infants: 0
-          }
-        },
-        timestamp: new Date().toISOString()
-      };
-
-      console.log('Données de réservation préparées:', bookingData);
-
-      // Sauvegarde sécurisée en session storage
-      sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
-
-      // Vérification immédiate de la sauvegarde
-      const stored = sessionStorage.getItem('bookingData');
-      if (!stored) {
-        throw new Error('Échec de la sauvegarde en session storage');
-      }
-
-      console.log('Vérification du stockage:', JSON.parse(stored));
-
-      // Navigation vers la page de détails
-      router.push('/details');
-
-    } catch (error) {
-      console.error('Erreur lors de la préparation des données de réservation:', error);
-      alert('Une erreur est survenue lors de la préparation de votre réservation. Veuillez réessayer.');
-    }
-  };
-
-  /**
    * Gère la recherche et le filtrage des vols
-   * Applique les filtres sur la liste complète des vols
-   * @param filters - Critères de recherche (origine, destination, date, passagers)
    */
   const handleSearch = (filters: { from: string; to: string; date: string; passengers: number }): void => {
-    let filtered = [...allFlights]; // Copie pour immutabilité
+    let filtered = [...allFlights];
 
     // Filtre par aéroport de départ
     if (filters.from.trim()) {
@@ -369,27 +213,22 @@ const EmptyLegsPage = () => {
 
     // Application des résultats filtrés
     setFilteredFlights(filtered);
-    setCurrentPage(1); // Retour à la première page après recherche
+    setCurrentPage(1);
   };
 
   /**
-   * Gère le changement de page de la pagination.
-   * Fait défiler la fenêtre vers le haut pour une meilleure UX.
-   * @param newPage - Le nouveau numéro de page à afficher.
+   * Gère le changement de page de la pagination
    */
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-
-    // Défilement de la fenêtre vers le haut sans recharger la page
     window.scrollTo({
       top: 0,
-      behavior: 'smooth', // Défilement fluide
+      behavior: 'smooth',
     });
   };
 
   /**
    * Initialisation des données au chargement du composant
-   * Simule le chargement depuis une API
    */
   useEffect(() => {
     setAllFlights(flightsData);
@@ -446,7 +285,7 @@ const EmptyLegsPage = () => {
                   <FlightCard
                     key={flight.id}
                     flight={flight}
-                    onMoreInfo={() => handleMoreInfo(flight)}
+                    useIntegratedModal={true} // Toujours utiliser la modale intégrée pour EmptyLegs
                   />
                 ))}
               </div>
@@ -456,7 +295,7 @@ const EmptyLegsPage = () => {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={handlePageChange} // Utilisation du nouveau gestionnaire
+                  onPageChange={handlePageChange}
                   itemsPerPage={itemsPerPage}
                   totalItems={filteredFlights.length}
                 />

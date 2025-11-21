@@ -12,7 +12,7 @@ export default function JetCharterPage() {
 
       <Navbar />
 
-      {/* Hero Section Élégante */}
+      {/* Hero Section */}
       <section
         className="relative min-h-[70vh] flex items-center justify-center w-full bg-cover bg-center bg-no-repeat"
         style={{

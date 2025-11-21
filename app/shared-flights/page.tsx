@@ -6,14 +6,8 @@ import SearchForm from "../components/SearchForm";
 import FlightCard from "../components/FlightCard";
 import Pagination from "../components/Pagination";
 import FlightDetailsModal from "../components/FlightDetailsModal";
-import { useRouter } from 'next/navigation';
 import NavbarSE from '../components/NavbarES';
 
-/**
- * Interface complète pour représenter un vol partagé (Shared Flight)
- * Les vols partagés permettent de réduire les coûts en partageant
- * l'avion avec d'autres passagers
- */
 interface Flight {
   id: number;
   departure: string;
@@ -24,77 +18,14 @@ interface Flight {
   capacity: number;
   price: number;
   image: string;
-  codeFrom: string; // Code IATA de l'aéroport de départ
-  codeTo: string;   // Code IATA de l'aéroport d'arrivée
-  cityFrom: string; // Ville de départ
-  cityTo: string;   // Ville d'arrivée
-  pricestarting: string; // Indicateur de prix ("Price up to", "From", etc.)
+  codeFrom: string;
+  codeTo: string;
+  cityFrom: string;
+  cityTo: string;
+  pricestarting: string;
 }
 
-/**
- * Interface pour les données de date/heure extraites
- */
-interface DateTimeInfo {
-  date: string;
-  time: string;
-}
-
-/**
- * Interface pour les données complètes de réservation
- * Transférées vers la page de détails via sessionStorage
- */
-interface BookingData {
-  type: 'oneWay';
-  data: {
-    // Informations de vol de base
-    from: string;
-    to: string;
-    departureDate: string;
-    departureTime: string;
-
-    // Informations détaillées pour l'affichage
-    codeFrom: string;
-    codeTo: string;
-    cityFrom: string;
-    cityTo: string;
-
-    // Configuration des passagers
-    passengers: {
-      adults: number;
-      children: number;
-      infants: number;
-    };
-
-    // Caractéristiques techniques du vol
-    aircraft: string;
-    type: string;
-    capacity: number;
-    price: number;
-    totalCost: number;
-
-    // Options supplémentaires
-    pets: {
-      small: number;
-      large: number;
-    };
-    baggage: {
-      cabin: number;
-      checked: number;
-      skis: number;
-      golf: number;
-      other: number;
-    };
-  };
-  timestamp: string;
-}
-
-/**
- * Page principale pour la recherche et réservation de vols partagés
- * Offre deux catégories : ON SALE (disponibles) et ON PRESALE (pré-réservations)
- */
 const SharedFlightsPage = () => {
-  const router = useRouter();
-
   // États de gestion des données et de l'interface
   const [currentPage, setCurrentPage] = useState(1);
   const [allSaleFlights, setAllSaleFlights] = useState<Flight[]>([]);
@@ -102,17 +33,16 @@ const SharedFlightsPage = () => {
   const [filteredFlights, setFilteredFlights] = useState<Flight[]>([]);
   const [activeTab, setActiveTab] = useState<'sale' | 'presale'>('sale');
   const [isSearchActive, setIsSearchActive] = useState(false);
+
+  // ÉTATS POUR LA MODALE
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Configuration de l'application
   const itemsPerPage = 6;
-  const pricestarting = "Price up to"; // Indicateur standard pour les vols partagés
+  const pricestarting = "Price up to";
 
-  /**
-   * Catalogue des vols ON SALE - Disponibles immédiatement
-   * Ces vols sont confirmés et prêts au départ
-   */
+  // Catalogue des vols ON SALE
   const saleFlights: Flight[] = [
     {
       id: 1,
@@ -180,10 +110,7 @@ const SharedFlightsPage = () => {
     }
   ];
 
-  /**
-   * Catalogue des vols ON PRESALE - Pré-réservations
-   * Ces vols nécessitent un nombre minimum de participants pour être confirmés
-   */
+  // Catalogue des vols ON PRESALE
   const presaleFlights: Flight[] = [
     {
       id: 5,
@@ -252,142 +179,33 @@ const SharedFlightsPage = () => {
   ];
 
   /**
-   * Extrait la date et l'heure d'une chaîne de départ
-   * Format d'entrée: "Thu 29 Oct 2026"
-   * @param departureString - Chaîne de date au format texte
-   * @returns Objet contenant la date au format ISO et l'heure par défaut
-   */
-  const extractDateTime = (departureString: string): DateTimeInfo => {
-    const parts = departureString.split(' ');
-
-    if (parts.length < 4) {
-      console.warn(`Format de date invalide: ${departureString}`);
-      return { date: "", time: "" };
-    }
-
-    const day = parts[1];
-    const month = parts[2];
-    const year = parts[3];
-
-    const months: { [key: string]: string } = {
-      'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
-      'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
-      'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
-    };
-
-    const monthNumber = months[month];
-    if (!monthNumber) {
-      console.warn(`Mois invalide: ${month}`);
-      return { date: "", time: "" };
-    }
-
-    return {
-      date: `${year}-${monthNumber}-${day.padStart(2, '0')}`,
-      time: "10:00:00" // Heure par défaut pour les vols partagés
-    };
-  };
-
-  /**
-   * Ouvre la modal de détails pour un vol ON SALE
-   * Redirige directement vers /details pour un vol ON PRESALE
-   * @param flight - Vol sélectionné pour affichage des détails
+   * Gère l'affichage des détails d'un vol
+   * Pour ON SALE : ouvre FlightDetailsModal
+   * Pour ON PRESALE : utilise la modale intégrée de FlightCard
    */
   const handleMoreInfo = (flight: Flight): void => {
-    // Vérifier si le vol est dans la liste ON SALE ou ON PRESALE
+    // Vérifier si le vol est dans la liste ON SALE
     const isSaleFlight = allSaleFlights.some(f => f.id === flight.id);
-    const isPresaleFlight = allPresaleFlights.some(f => f.id === flight.id);
 
     if (isSaleFlight) {
-      // Pour ON SALE : ouvrir la modal
+      // Pour ON SALE : ouvrir FlightDetailsModal
       setSelectedFlight(flight);
       setIsModalOpen(true);
-    } else if (isPresaleFlight) {
-      // Pour ON PRESALE : rediriger directement vers /details
-      handleDirectBooking(flight);
     }
+    // Pour ON PRESALE : ne rien faire de spécial, la modale intégrée de FlightCard s'ouvrira automatiquement
   };
 
   /**
-   * Gère la réservation directe pour les vols ON PRESALE
-   * Sauvegarde les données et redirige vers /details sans passer par la modal
-   * @param flight - Vol à réserver directement
+   * Détermine si un vol doit utiliser la modale intégrée
    */
-  const handleDirectBooking = (flight: Flight): void => {
-    try {
-      const dateTimeInfo = extractDateTime(flight.departure);
-
-      // Validation des données essentielles
-      if (!dateTimeInfo.date) {
-        throw new Error('Impossible d\'extraire la date de départ');
-      }
-
-      // Construction de l'objet de réservation complet
-      const bookingData: BookingData = {
-        type: 'oneWay',
-        data: {
-          // Informations de vol de base - utiliser les codes IATA et villes
-          from: `${flight.codeFrom} - ${flight.cityFrom}`,
-          to: `${flight.codeTo} - ${flight.cityTo}`,
-          departureDate: dateTimeInfo.date,
-          departureTime: dateTimeInfo.time,
-
-          // Informations détaillées pour l'affichage
-          codeFrom: flight.codeFrom,
-          codeTo: flight.codeTo,
-          cityFrom: flight.cityFrom,
-          cityTo: flight.cityTo,
-
-          // Configuration des passagers (valeurs par défaut)
-          passengers: {
-            adults: 1,
-            children: 0,
-            infants: 0
-          },
-
-          // Caractéristiques techniques du vol
-          aircraft: flight.aircraft,
-          type: flight.type,
-          capacity: flight.capacity,
-          price: flight.price,
-          totalCost: flight.price, // Prix de base pour un adulte
-
-          // Options supplémentaires avec valeurs par défaut
-          pets: { small: 0, large: 0 },
-          baggage: {
-            cabin: 0,
-            checked: 0,
-            skis: 0,
-            golf: 0,
-            other: 0
-          }
-        },
-        timestamp: new Date().toISOString()
-      };
-
-      console.log('Données de réservation ON PRESALE préparées:', bookingData);
-
-      // Sauvegarde sécurisée en session storage
-      sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
-
-      // Vérification de l'intégrité des données sauvegardées
-      const stored = sessionStorage.getItem('bookingData');
-      if (!stored) {
-        throw new Error('Échec de la sauvegarde en session storage');
-      }
-
-      console.log('Vérification du stockage ON PRESALE:', JSON.parse(stored));
-
-      // Redirection directe vers la page de détails
-      router.push('/details');
-
-    } catch (error) {
-      console.error('Erreur lors de la réservation directe ON PRESALE:', error);
-      alert('Une erreur est survenue lors de la préparation de votre réservation. Veuillez réessayer.');
-    }
+  const shouldUseIntegratedModal = (flight: Flight): boolean => {
+    // Si le vol est dans ON PRESALE, utiliser la modale intégrée
+    const isPresaleFlight = allPresaleFlights.some(f => f.id === flight.id);
+    return isPresaleFlight;
   };
 
   /**
-   * Ferme la modal de détails et réinitialise la sélection
+   * Ferme la modal FlightDetailsModal
    */
   const handleCloseModal = (): void => {
     setIsModalOpen(false);
@@ -395,77 +213,44 @@ const SharedFlightsPage = () => {
   };
 
   /**
-   * Gère la finalisation de la réservation depuis la modal (pour ON SALE)
-   * Sauvegarde les données complètes et redirige vers la page de détails
-   * @param flightData - Données complètes du vol avec options sélectionnées
+   * Gère la finalisation de la réservation depuis FlightDetailsModal
    */
   const handleNext = (flightData: any): void => {
     try {
-      // Validation des données essentielles
-      if (!flightData?.from || !flightData?.to || !flightData?.date) {
-        throw new Error('Données de vol incomplètes');
-      }
-
-      // Construction de l'objet de réservation complet
-      const bookingData: BookingData = {
-        type: 'oneWay',
+      // Construction de l'objet de réservation
+      const bookingData = {
+        type: 'oneWay' as const,
         data: {
-          // Informations de vol de base
           from: flightData.from,
           to: flightData.to,
-          departureDate: flightData.date,
-          departureTime: flightData.time,
-
-          // Informations détaillées pour l'affichage
+          departureDate: flightData.departureDate,
+          departureTime: flightData.departureTime,
           codeFrom: flightData.codeFrom,
           codeTo: flightData.codeTo,
           cityFrom: flightData.cityFrom,
           cityTo: flightData.cityTo,
-
-          // Configuration des passagers
-          passengers: {
-            adults: flightData.passengers?.adults || 1,
-            children: flightData.passengers?.children || 0,
-            infants: flightData.passengers?.infants || 0
-          },
-
-          // Caractéristiques techniques
+          passengers: flightData.passengers,
           aircraft: flightData.aircraft,
           type: flightData.type,
           capacity: flightData.capacity,
           price: flightData.price,
           totalCost: flightData.totalCost,
-
-          // Options supplémentaires avec valeurs par défaut
-          pets: flightData.pets || { small: 0, large: 0 },
-          baggage: flightData.baggage || {
-            cabin: 0,
-            checked: 0,
-            skis: 0,
-            golf: 0,
-            other: 0
-          }
+          pets: flightData.pets,
+          baggage: flightData.baggage
         },
         timestamp: new Date().toISOString()
       };
 
       console.log('Données de réservation ON SALE préparées:', bookingData);
 
-      // Sauvegarde sécurisée en session storage
+      // Sauvegarde en session storage
       sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
 
-      // Vérification de l'intégrité des données sauvegardées
-      const stored = sessionStorage.getItem('bookingData');
-      if (!stored) {
-        throw new Error('Échec de la sauvegarde en session storage');
-      }
+      // Fermeture de la modal
+      handleCloseModal();
 
-      console.log('Vérification du stockage ON SALE:', JSON.parse(stored));
-
-      // Fermeture de la modal et redirection
-      setIsModalOpen(false);
-      setSelectedFlight(null);
-      router.push('/details');
+      // Redirection vers /details
+      window.location.href = '/details';
 
     } catch (error) {
       console.error('Erreur lors de la préparation de la réservation ON SALE:', error);
@@ -474,15 +259,12 @@ const SharedFlightsPage = () => {
   };
 
   /**
-   * Gère la recherche parmi tous les vols (SALE et PRESALE)
-   * Active le mode recherche global qui ignore la segmentation par onglets
-   * @param filters - Critères de recherche (origine, destination, date)
+   * Gère la recherche parmi tous les vols
    */
   const handleSearch = (filters: { from: string; to: string; date: string; passengers: number }): void => {
     const allFlights = [...allSaleFlights, ...allPresaleFlights];
     let filtered = allFlights;
 
-    // Détection du mode "recherche vide" pour réinitialiser l'affichage
     const isSearchEmpty = !filters.from && !filters.to && !filters.date;
 
     if (isSearchEmpty) {
@@ -493,7 +275,6 @@ const SharedFlightsPage = () => {
       return;
     }
 
-    // Activation du mode recherche globale
     setIsSearchActive(true);
 
     // Filtrage par aéroport de départ
@@ -535,37 +316,32 @@ const SharedFlightsPage = () => {
       });
     }
 
-    // Application des résultats de recherche
     setFilteredFlights(filtered);
-    setCurrentPage(1); // Retour à la première page
+    setCurrentPage(1);
   };
 
   /**
-   * Gère le changement d'onglet entre SALE et PRESALE
-   * Ignoré lorsqu'une recherche globale est active
-   * @param tab - Onglet à activer ('sale' ou 'presale')
+   * Gère le changement d'onglet
    */
   const handleTabChange = (tab: 'sale' | 'presale'): void => {
     setActiveTab(tab);
 
-    // Conservation des résultats de recherche en mode global
     if (isSearchActive) {
       return;
     }
 
-    // Chargement des vols correspondant à l'onglet sélectionné
     const currentFlights = tab === 'sale' ? allSaleFlights : allPresaleFlights;
     setFilteredFlights(currentFlights);
     setCurrentPage(1);
   };
 
   /**
-   * Initialisation des données au chargement du composant
+   * Initialisation des données
    */
   useEffect(() => {
     setAllSaleFlights(saleFlights);
     setAllPresaleFlights(presaleFlights);
-    setFilteredFlights(saleFlights); // Onglet SALE par défaut
+    setFilteredFlights(saleFlights);
   }, []);
 
   // Calcul des données de pagination
@@ -578,7 +354,7 @@ const SharedFlightsPage = () => {
     <div className="min-h-screen bg-white">
       <NavbarSE />
 
-      {/* Section Hero avec image de fond et overlay */}
+      {/* Section Hero */}
       <div
         className="relative bg-cover bg-center md:h-96 pt-20"
         style={{
@@ -598,7 +374,6 @@ const SharedFlightsPage = () => {
             opportunities and professional connections that enrich your travel experience.
           </p>
 
-          {/* Composant de recherche */}
           <SearchForm onSearch={handleSearch} />
         </div>
       </div>
@@ -621,10 +396,10 @@ const SharedFlightsPage = () => {
         )}
 
         {/* Navigation par onglets */}
-        <div className="flex mb-6">
+        <div className="flex mb-6 gap-15">
           <button
             onClick={() => handleTabChange('sale')}
-            className={`text-xl px-6 py-3 rounded-t-lg transition-colors ${activeTab === 'sale'
+            className={`text-xl  py-3 rounded-t-lg transition-colors ${activeTab === 'sale'
               ? 'text-[#b8922e] border-b-2 border-[#b8922e] font-semibold'
               : 'text-gray-400 hover:text-gray-600'
               } ${isSearchActive ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -635,7 +410,7 @@ const SharedFlightsPage = () => {
           </button>
           <button
             onClick={() => handleTabChange('presale')}
-            className={`text-xl px-6 py-3 rounded-t-lg transition-colors ${activeTab === 'presale'
+            className={`text-xl py-3 rounded-t-lg transition-colors ${activeTab === 'presale'
               ? 'text-[#b8922e] border-b-2 border-[#b8922e] font-semibold'
               : 'text-gray-400 hover:text-gray-600'
               } ${isSearchActive ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -647,12 +422,10 @@ const SharedFlightsPage = () => {
         </div>
 
         <div className="max-w-7xl mx-auto">
-          {/* En-tête avec compteur de résultats */}
           <h2 className="text-2xl text-[#b8922e] mb-8">
             {filteredFlights.length} {filteredFlights.length === 1 ? 'flight' : 'flights'}
           </h2>
 
-          {/* Grille des vols ou message d'absence de résultats */}
           {currentFlights.length > 0 ? (
             <>
               <div className="grid gap-8 mb-12">
@@ -660,12 +433,12 @@ const SharedFlightsPage = () => {
                   <FlightCard
                     key={flight.id}
                     flight={flight}
-                    onMoreInfo={() => handleMoreInfo(flight)}
+                    onMoreInfo={handleMoreInfo}
+                    useIntegratedModal={shouldUseIntegratedModal(flight)} // Déterminer dynamiquement
                   />
                 ))}
               </div>
 
-              {/* Pagination - affichée seulement si nécessaire */}
               {totalPages > 1 && (
                 <Pagination
                   currentPage={currentPage}
@@ -689,7 +462,7 @@ const SharedFlightsPage = () => {
         </div>
       </div>
 
-      {/* Modal des détails du vol - uniquement pour ON SALE */}
+      {/* Modal FlightDetailsModal - uniquement pour ON SALE */}
       {isModalOpen && selectedFlight && (
         <FlightDetailsModal
           flight={selectedFlight}

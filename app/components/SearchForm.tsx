@@ -32,7 +32,16 @@ const SearchForm: React.FC<SearchFormProps> = ({
   initialDate = '',
   initialPassengers = 1
 }) => {
-  // Fonction pour obtenir la date du jour au format YYYY-MM-DD
+  // Fonction pour formater la date au format "11, Oct, 2025"
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString('en', { month: 'short' });
+    const year = date.getFullYear();
+    return `${day}, ${month}, ${year}`;
+  };
+
+  // Fonction pour obtenir la date du jour au format YYYY-MM-DD (pour l'input date)
   const getTodayDate = (): string => {
     const today = new Date();
     const year = today.getFullYear();
@@ -41,15 +50,26 @@ const SearchForm: React.FC<SearchFormProps> = ({
     return `${year}-${month}-${day}`;
   };
 
+  // Fonction pour convertir le format "11, Oct, 2025" en "2025-10-11"
+  const parseFormattedDate = (formattedDate: string): string => {
+    const [day, month, year] = formattedDate.split(', ');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthIndex = monthNames.findIndex(m => m === month);
+    const date = new Date(parseInt(year), monthIndex, parseInt(day));
+    return date.toISOString().split('T')[0];
+  };
+
   // États pour les champs de recherche
   const [passengers, setPassengers] = useState(initialPassengers);
   const [searchFrom, setSearchFrom] = useState(initialFrom);
   const [searchTo, setSearchTo] = useState(initialTo);
   const [searchDate, setSearchDate] = useState(initialDate || getTodayDate());
+  const [displayDate, setDisplayDate] = useState(formatDate(initialDate || getTodayDate()));
 
   // États pour gérer le focus (afficher le texte complet ou tronqué)
   const [isFromFocused, setIsFromFocused] = useState(false);
   const [isToFocused, setIsToFocused] = useState(false);
+  const [isDateFocused, setIsDateFocused] = useState(false);
 
   // États pour la gestion des aéroports et suggestions
   const [airports, setAirports] = useState<Airport[]>([]);
@@ -61,6 +81,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
   // Refs pour les inputs
   const fromInputRef = useRef<HTMLInputElement>(null);
   const toInputRef = useRef<HTMLInputElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   // Chargement initial de la base de données des aéroports
   useEffect(() => {
@@ -80,9 +101,18 @@ const SearchForm: React.FC<SearchFormProps> = ({
   // Initialisation de la date du jour si aucune date initiale n'est fournie
   useEffect(() => {
     if (!initialDate) {
-      setSearchDate(getTodayDate());
+      const today = getTodayDate();
+      setSearchDate(today);
+      setDisplayDate(formatDate(today));
+    } else {
+      setDisplayDate(formatDate(initialDate));
     }
   }, [initialDate]);
+
+  // Mise à jour de la date affichée quand searchDate change
+  useEffect(() => {
+    setDisplayDate(formatDate(searchDate));
+  }, [searchDate]);
 
   // Filtrage des aéroports pour le champ "From"
   useEffect(() => {
@@ -162,7 +192,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
   };
 
   const handleFromBlur = () => {
-    // Délai pour permettre le clic sur les suggestions
     setTimeout(() => {
       setIsFromFocused(false);
       setShowFromSuggestions(false);
@@ -178,15 +207,30 @@ const SearchForm: React.FC<SearchFormProps> = ({
   };
 
   const handleToBlur = () => {
-    // Délai pour permettre le clic sur les suggestions
     setTimeout(() => {
       setIsToFocused(false);
       setShowToSuggestions(false);
     }, 200);
   };
 
+  // Gestion du focus sur le champ date
+  const handleDateFocus = () => {
+    setIsDateFocused(true);
+  };
+
+  const handleDateBlur = () => {
+    setTimeout(() => {
+      setIsDateFocused(false);
+    }, 200);
+  };
+
+  // Gestion du changement de date
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchDate(e.target.value);
+  };
+
   // Gestion des touches pour la navigation au clavier
-  const handleKeyPress = (e: React.KeyboardEvent, type: 'from' | 'to') => {
+  const handleKeyPress = (e: React.KeyboardEvent, type: 'from' | 'to' | 'date') => {
     if (e.key === 'Enter') {
       handleSearch();
     } else if (e.key === 'Escape') {
@@ -194,10 +238,13 @@ const SearchForm: React.FC<SearchFormProps> = ({
         setShowFromSuggestions(false);
         setIsFromFocused(false);
         fromInputRef.current?.blur();
-      } else {
+      } else if (type === 'to') {
         setShowToSuggestions(false);
         setIsToFocused(false);
         toInputRef.current?.blur();
+      } else {
+        setIsDateFocused(false);
+        dateInputRef.current?.blur();
       }
     }
   };
@@ -218,7 +265,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             onBlur={handleFromBlur}
             onKeyDown={(e) => handleKeyPress(e, 'from')}
             className="w-full bg-white px-4 py-4 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
-            title={searchFrom} // Tooltip au survol
+            title={searchFrom}
           />
           {showFromSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">
@@ -251,7 +298,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             onBlur={handleToBlur}
             onKeyDown={(e) => handleKeyPress(e, 'to')}
             className="w-full bg-white px-4 py-4 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
-            title={searchTo} // Tooltip au survol
+            title={searchTo}
           />
           {showToSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">
@@ -276,12 +323,22 @@ const SearchForm: React.FC<SearchFormProps> = ({
         <div className="relative md:col-span-2">
           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
           <input
+            ref={dateInputRef}
             type="date"
             value={searchDate}
-            onChange={(e) => setSearchDate(e.target.value)}
+            onChange={handleDateChange}
+            onFocus={handleDateFocus}
+            onBlur={handleDateBlur}
+            onKeyDown={(e) => handleKeyPress(e, 'date')}
             min={getTodayDate()}
-            className="w-full bg-white px-4 py-4 pl-10 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors"
+            className="w-full bg-white px-4 py-4 pl-10 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors absolute opacity-0 pointer-events-none"
           />
+          <div
+            className="w-full bg-white px-4 py-4 pl-10 border border-gray-300 cursor-pointer"
+            onClick={() => dateInputRef.current?.showPicker()}
+          >
+            {isDateFocused ? searchDate : displayDate}
+          </div>
         </div>
 
         {/* Sélecteur du nombre de passagers */}
