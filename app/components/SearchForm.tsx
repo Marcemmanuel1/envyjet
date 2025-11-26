@@ -251,10 +251,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
   return (
     <div className="shadow-lg w-full py-6 max-w-[100%] mx-auto md:w-full">
-      <div className="grid grid-cols-1 md:grid-cols-11 gap-[1px]">
+      {/* Disposition responsive pour mobile, tablette et desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-11 gap-[1px]">
 
-        {/* Champ de recherche "From" avec autocomplétion */}
-        <div className="relative md:col-span-3">
+        {/* Champ de recherche "From" avec autocomplétion - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <div className="relative md:col-span-1 lg:col-span-3">
           <input
             ref={fromInputRef}
             type="text"
@@ -286,8 +287,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
           )}
         </div>
 
-        {/* Champ de recherche "To" avec autocomplétion */}
-        <div className="relative md:col-span-3">
+        {/* Champ de recherche "To" avec autocomplétion - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <div className="relative md:col-span-1 lg:col-span-3">
           <input
             ref={toInputRef}
             type="text"
@@ -319,8 +320,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
           )}
         </div>
 
-        {/* Sélecteur de date */}
-        <div className="relative md:col-span-2">
+        {/* Sélecteur de date - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <div className="relative md:col-span-1 lg:col-span-2">
           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
           <input
             ref={dateInputRef}
@@ -341,8 +342,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
           </div>
         </div>
 
-        {/* Sélecteur du nombre de passagers */}
-        <div className="bg-white flex items-center justify-between border border-gray-300 px-4 py-2">
+        {/* Sélecteur du nombre de passagers - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <div className="bg-white flex items-center justify-between border border-gray-300 px-4 py-2 md:col-span-1 lg:col-span-1">
           <User className="text-gray-400 w-5 h-5" />
           <span className="flex-1 text-center font-semibold">{passengers}</span>
           <div className="flex flex-col gap-1">
@@ -363,10 +364,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
           </div>
         </div>
 
-        {/* Bouton de recherche */}
+        {/* Bouton de recherche - Prend toute la largeur sur mobile et tablette */}
         <button
           onClick={handleSearch}
-          className="bg-[#d3a936] hover:bg-[#b8922e] md:col-span-2 text-white font-semibold py-3 px-6 transition-colors duration-200"
+          className="bg-[#d3a936] hover:bg-[#b8922e] md:col-span-2 lg:col-span-2 text-white font-semibold py-3 px-6 transition-colors duration-200"
         >
           SEARCH
         </button>

@@ -247,7 +247,7 @@ const EmptyLegsPage = () => {
 
       {/* Section Hero avec image de fond et overlay */}
       <div
-        className="relative bg-cover bg-center md:h-96 pt-20"
+        className="relative bg-cover bg-center md:h-120 pt-20"
         style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1600&h=600&fit=crop')",
         }}

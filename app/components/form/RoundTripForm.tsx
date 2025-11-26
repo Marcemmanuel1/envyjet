@@ -123,8 +123,10 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
           Outbound
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-14 gap-[1px]">
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+        {/* Disposition responsive pour outbound */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-14 gap-[1px]">
+          {/* From - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-3">
             <AirportInput
               value={formData.outbound.from}
               onChange={(value) => handleOutboundChange("from", value)}
@@ -132,7 +134,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+          {/* To - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-3">
             <AirportInput
               value={formData.outbound.to}
               onChange={(value) => handleOutboundChange("to", value)}
@@ -140,8 +143,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          {/* Sélecteur de date outbound avec format personnalisé */}
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+          {/* Date - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-3">
             <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
             {/* Input date caché mais fonctionnel */}
             <input
@@ -164,7 +167,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             </div>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
+          {/* Time - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-2">
             <FiClock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
             <input
               type="time"
@@ -176,7 +180,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-3 gap-[1px] md:col-span-3">
+          {/* Dropdowns - Prend toute la largeur sur mobile et tablette */}
+          <div className="grid grid-cols-3 gap-[1px] md:col-span-2 lg:col-span-3">
             <div className="w-full">
               <PassengersDropdown
                 passengers={formData.outbound.passengers}
@@ -203,8 +208,11 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
 
       <div className="space-y-3">
         <h3 className="text-white text-base font-medium" style={{ fontFamily: 'Century Gothic, sans-serif' }}>Inbound</h3>
-        <div className="grid grid-cols-1 md:grid-cols-14 gap-[1px]">
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+
+        {/* Disposition responsive pour inbound */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-14 gap-[1px]">
+          {/* From - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-3">
             <AirportInput
               value={formData.return.from || formData.outbound.to}
               onChange={(value) => handleReturnChange('from', value)}
@@ -212,7 +220,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+          {/* To - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-3">
             <AirportInput
               value={formData.return.to || formData.outbound.from}
               onChange={(value) => handleReturnChange('to', value)}
@@ -220,8 +229,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          {/* Sélecteur de date return avec format personnalisé */}
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+          {/* Date - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-3">
             <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
             {/* Input date caché mais fonctionnel */}
             <input
@@ -244,7 +253,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             </div>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
+          {/* Time - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+          <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-1 lg:col-span-2">
             <FiClock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
             <input
               type="time"
@@ -256,7 +266,8 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
             />
           </motion.div>
 
-          <div className='grid grid-cols-3 sm:grid-cols-3 gap-[1px] md:col-span-3'>
+          {/* Dropdowns - Prend toute la largeur sur mobile et tablette */}
+          <div className='grid grid-cols-3 gap-[1px] md:col-span-2 lg:col-span-3'>
             <div>
               <PassengersDropdown
                 passengers={formData.return.passengers}
@@ -281,12 +292,13 @@ const RoundTripForm: React.FC<FormProps> = ({ onSubmit }) => {
         </div>
       </div>
 
+      {/* Bouton responsive */}
       <motion.button
         whileHover={{ scale: 1.03, backgroundColor: "#a98c2f" }}
         whileTap={{ scale: 0.97 }}
         type="submit"
         disabled={isSubmitting}
-        className="w-full md:w-[20%] bg-[#d3a936] text-white py-3 lg:py-4 font-medium text-base lg:text-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full md:w-[100%] lg:w-[20%] bg-[#d3a936] text-white py-3 lg:py-4 font-medium text-base lg:text-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ fontFamily: 'Century Gothic, sans-serif' }}
       >
         {isSubmitting ? (

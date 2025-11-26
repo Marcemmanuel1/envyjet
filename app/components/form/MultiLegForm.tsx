@@ -1,5 +1,3 @@
-// components/form/MultiLegForm.tsx
-
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -110,8 +108,10 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-14 gap-[1px]">
-              <div className="relative md:col-span-3">
+            {/* Disposition responsive pour mobile et tablette */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-14 gap-[1px] md:gap-[1px]">
+              {/* From - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+              <div className="relative md:col-span-1 lg:col-span-3">
                 <AirportInput
                   value={leg.from}
                   onChange={(value) => updateLeg(index, 'from', value)}
@@ -119,7 +119,8 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              <div className="relative md:col-span-3">
+              {/* To - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+              <div className="relative md:col-span-1 lg:col-span-3">
                 <AirportInput
                   value={leg.to}
                   onChange={(value) => updateLeg(index, 'to', value)}
@@ -127,8 +128,8 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              {/* Sélecteur de date avec format personnalisé */}
-              <div className="relative md:col-span-3">
+              {/* Date - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+              <div className="relative md:col-span-1 lg:col-span-3">
                 <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={18} />
                 {/* Input date caché mais fonctionnel */}
                 <input
@@ -146,7 +147,8 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                   style={{ fontFamily: 'Century Gothic, sans-serif' }}
                   onClick={() => {
                     // Ouvre le sélecteur de date natif
-                    const dateInput = document.querySelector(`input[type="date"]:nth-child(${index * 2 + 1})`) as HTMLInputElement;
+                    const dateInputs = document.querySelectorAll(`input[type="date"]`);
+                    const dateInput = dateInputs[index] as HTMLInputElement;
                     dateInput?.showPicker();
                   }}
                 >
@@ -154,7 +156,8 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 </div>
               </div>
 
-              <div className="relative md:col-span-2">
+              {/* Time - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+              <div className="relative md:col-span-1 lg:col-span-2">
                 <FiClock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={18} />
                 <input
                   type="time"
@@ -166,7 +169,8 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-[1px] md:col-span-3">
+              {/* Dropdowns - Prend toute la largeur sur mobile et tablette, disposition en grille */}
+              <div className="grid grid-cols-3 gap-[1px] md:gap-[1px] md:col-span-2 lg:col-span-3">
                 <PassengersDropdown
                   passengers={leg.passengers}
                   onChange={(passengers) => updateLeg(index, 'passengers', passengers)}
@@ -185,11 +189,12 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
         ))}
       </div>
 
-      <div className="flex justify-between items-center gap-[1px]">
+      {/* Boutons responsive */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-[1px] sm:gap-[1px]">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-[66%] md:w-[20%] bg-[#d3a936] text-white py-3 lg:py-4 font-medium text-base lg:text-lg hover:bg-[#a98c2f] hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-[66%] lg:w-[20%] bg-[#d3a936] text-white py-3 lg:py-4 font-medium text-base lg:text-lg hover:bg-[#a98c2f] hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: 'Century Gothic, sans-serif' }}
         >
           {isSubmitting ? (
@@ -205,7 +210,7 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
         <button
           type="button"
           onClick={addLeg}
-          className="bg-white/20 text-white px-4 py-4 flex items-center space-x-2 text-sm hover:bg-white/30 transition-colors"
+          className="w-full sm:w-auto bg-white/20 text-white px-4 py-3 sm:py-4 flex items-center justify-center sm:justify-start space-x-2 text-sm hover:bg-white/30 transition-colors"
         >
           <FiPlus size={16} />
           <span>Add Leg</span>

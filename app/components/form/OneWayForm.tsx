@@ -89,8 +89,13 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-15 gap-[1px]">
-        <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+      {/* Disposition responsive pour mobile, tablette et desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-15 gap-[1px]">
+        {/* From - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="relative md:col-span-1 lg:col-span-3"
+        >
           <AirportInput
             value={formData.from}
             onChange={(value) => handleInputChange('from', value)}
@@ -98,7 +103,11 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-3">
+        {/* To - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="relative md:col-span-1 lg:col-span-3"
+        >
           <AirportInput
             value={formData.to}
             onChange={(value) => handleInputChange('to', value)}
@@ -106,9 +115,12 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
-        {/* Sélecteur de date avec format personnalisé */}
-        <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
-          <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
+        {/* Date - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="relative md:col-span-1 lg:col-span-2"
+        >
+          <FiCalendar className="absolute left-1 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
           {/* Input date caché mais fonctionnel */}
           <input
             ref={dateInputRef}
@@ -122,7 +134,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
           {/* Div d'affichage avec le format personnalisé */}
           <div
-            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-11 pr-4 py-3 lg:py-4 text-sm lg:text-base cursor-pointer"
+            className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-7 pr-2 py-3 lg:py-[18px] text-sm lg:text-[14px] cursor-pointer"
             style={{ fontFamily: 'Century Gothic, sans-serif' }}
             onClick={handleDateClick}
           >
@@ -130,7 +142,11 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.02 }} className="relative md:col-span-2">
+        {/* Time - Prend toute la largeur sur mobile, 1/2 sur tablette */}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="relative md:col-span-1 lg:col-span-2"
+        >
           <FiClock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
           <input
             type="time"
@@ -142,7 +158,8 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-3 gap-[1px] md:col-span-3">
+        {/* Dropdowns - Prend toute la largeur sur mobile et tablette */}
+        <div className="grid grid-cols-3 gap-[1px] md:col-span-2 lg:col-span-3">
           <div>
             <PassengersDropdown
               passengers={formData.passengers}
@@ -165,12 +182,13 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           </div>
         </div>
 
+        {/* Bouton Search - Prend toute la largeur sur mobile et tablette */}
         <motion.button
           whileHover={{ scale: 1.03, backgroundColor: "#a98c2f" }}
           whileTap={{ scale: 0.97 }}
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#d3a936] text-white md:col-span-2 py-3 lg:py-3 font-medium text-base lg:text-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[#d3a936] text-white md:col-span-2 lg:col-span-2 py-3 lg:py-3 font-medium text-base lg:text-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: 'Century Gothic, sans-serif' }}
         >
           {isSubmitting ? (
