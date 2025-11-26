@@ -279,7 +279,7 @@ const DestinationsPage = () => {
       <div className="container mx-auto px-4 md:px-8 py-12 md:py-16">
         <div className="mb-12">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-            Victor top private jet destinations
+            Envyjet top private jet destinations
           </h2>
           <p className="text-gray-700 text-base md:text-lg mb-8">
             This is a list of the most popular countries to fly with us. You can see the list of regions and list of airports in a particular region in these countries.
