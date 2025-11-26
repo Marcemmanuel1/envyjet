@@ -289,12 +289,10 @@ const FlightCard: React.FC<FlightCardProps> = ({
               <p className="text-gray-600 text-sm mb-4">
                 Departure: <span className="font-semibold text-gray-800">{flight.departure}</span>
               </p>
-              <div className="text-gray-800 text-base mb-4">
-                <div className="flex flex-wrap items-center">
-                  <span className="font-medium break-words max-w-full">{flight.from}</span>
-                  <span className="mx-2 text-[#d3a936] flex-shrink-0">→</span>
-                  <span className="font-medium break-words max-w-full">{flight.to}</span>
-                </div>
+              <div className="flex flex-col md:flex-row md:items-center text-gray-800 text-base">
+                <span className="font-medium">{flight.from}</span>
+                <span className="mx-2 text-[#d3a936] my-1 md:my-0">→</span>
+                <span className="font-medium">{flight.to}</span>
               </div>
             </div>
 
