@@ -22,8 +22,8 @@ const Footer = () => {
         { label: 'Shared Flights', href: '/shared-flights' },
         { label: 'Empty Legs', href: '/empty-legs' },
         { label: 'Nectar Program', href: '/nectar' },
-        { label: 'Groupe charter', href: '/groupe-charter' },
-        { label: 'Medevac, air ambulance', href: '/medevac-air-ambulance' }
+        { label: 'Groupe charter', href: '/group-charter' },
+        { label: 'Medevac, air ambulance', href: '/medevac' }
       ]
     },
     {
