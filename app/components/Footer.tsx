@@ -59,7 +59,7 @@ const Footer = () => {
     <footer className="bg-gray-900 text-white">
       {/* Main Footer */}
       <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 md:gap-40 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 md:gap-12 gap-6">
           {/* Company Info */}
           <div className="lg:col-span-1">
             <motion.div
