@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/style.css';
 
 interface Flight {
   id: number;
@@ -20,6 +18,9 @@ interface Flight {
   codeTo: string;
   cityFrom: string;
   cityTo: string;
+  interior_photo?: string;
+  cabin_layout?: string;
+  exterior_photo?: string;
 }
 
 interface FlightCardProps {
@@ -27,50 +28,6 @@ interface FlightCardProps {
   onMoreInfo?: (flight: Flight) => void;
   useIntegratedModal?: boolean;
 }
-
-// Galerie d'images organisée par modèle d'avion
-const aircraftImages: { [key: string]: string[] } = {
-  'Gulfstream G-IV': [
-    'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&h=600&fit=crop',
-    '/images/interieur-un.jpg',
-    '/images/plan-un.jpg'
-  ],
-  'Citation X': [
-    '/images/avion-un.jpg',
-    '/images/interieur-deux.jpg',
-    'images/plan-deux.png'
-  ],
-  'Challenger 350': [
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=600&fit=crop',
-    '/images/interieur-trois.jpg',
-    '/images/plan-trois.webp'
-  ],
-  'Learjet 75': [
-    '/images/avion-deux.jpg',
-    '/images/interieur-quatre.jpg',
-    '/images/plan-quatre.webp'
-  ],
-  'Citation Sovereign': [
-    'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&h=600&fit=crop',
-    'inages/interieur-cinq.jpg',
-    '/images/plan-un.jpg'
-  ],
-  'Phenom 300': [
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=600&fit=crop',
-    '/images/interieur-six.jpg',
-    '/images/plan-deux.png'
-  ],
-  'Global 6000': [
-    'images/avion-un.jpg',
-    '/images/interieur-sept.jpg',
-    '/images/plan-trois.webp'
-  ],
-  'Citation CJ3': [
-    'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&h=600&fit=crop',
-    '/images/interieur-huit.webp',
-    '/images/plan-quatre.webp'
-  ]
-};
 
 // Styles réutilisables
 const inputStyles = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -105,7 +62,37 @@ const FlightCard: React.FC<FlightCardProps> = ({
     email: '',
     password: ''
   });
-  const [country, setCountry] = useState<string>("fr");
+
+  // Construire la galerie d'images depuis l'API
+  const getFlightImages = (): string[] => {
+    const images: string[] = [];
+
+    // Image principale (exterior ou image par défaut)
+    if (flight.exterior_photo) {
+      images.push(flight.exterior_photo);
+    } else if (flight.image) {
+      images.push(flight.image);
+    }
+
+    // Photo intérieur
+    if (flight.interior_photo) {
+      images.push(flight.interior_photo);
+    }
+
+    // Plan de cabine
+    if (flight.cabin_layout) {
+      images.push(flight.cabin_layout);
+    }
+
+    // Si aucune image, utiliser l'image par défaut
+    if (images.length === 0) {
+      images.push('https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&h=600&fit=crop');
+    }
+
+    return images;
+  };
+
+  const currentImages = getFlightImages();
 
   // Fonctions pour la galerie d'images
   const handleImageClick = () => {
@@ -119,27 +106,22 @@ const FlightCard: React.FC<FlightCardProps> = ({
   };
 
   const nextImage = () => {
-    const images = aircraftImages[flight.aircraft] || [flight.image];
     setCurrentImageIndex((prev) =>
-      prev === images.length - 1 ? 0 : prev + 1
+      prev === currentImages.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
-    const images = aircraftImages[flight.aircraft] || [flight.image];
     setCurrentImageIndex((prev) =>
-      prev === 0 ? images.length - 1 : prev - 1
+      prev === 0 ? currentImages.length - 1 : prev - 1
     );
   };
 
   // Fonction principale pour "MORE INFO"
   const handleMoreInfoClick = () => {
-    // Si useIntegratedModal est true, ouvrir la modale intégrée
     if (useIntegratedModal) {
       setIsInfoModalOpen(true);
     }
-
-    // Si onMoreInfo existe, on l'appelle aussi (pour SharedFlights)
     if (onMoreInfo) {
       onMoreInfo(flight);
     }
@@ -148,7 +130,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
   const closeInfoModal = () => {
     setIsInfoModalOpen(false);
     setShowAuth(false);
-    // Réinitialiser les formulaires
     setFormData({
       title: "",
       firstName: "",
@@ -166,7 +147,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
   const handleBookFlight = () => {
     closeInfoModal();
-    // Ici vous pouvez ajouter la logique de réservation
     console.log('Vol réservé:', flight);
   };
 
@@ -189,16 +169,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
     }));
   };
 
-  const handlePhoneChange = (value: string): void => {
-    setFormData(prevState => ({
-      ...prevState,
-      phone: value,
-    }));
-  };
-
   const handleAuthSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    // TODO: Implémenter la logique de connexion
     console.log('Login attempt:', authData);
     setShowAuth(false);
   };
@@ -209,7 +181,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
       console.warn("Formulaire invalide");
       return;
     }
-    // TODO: Implémenter la logique de réservation
     console.log('Form submitted:', formData);
     handleBookFlight();
   };
@@ -222,8 +193,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
     formData.phone?.trim() &&
     formData.acceptTerms
   );
-
-  const currentImages = aircraftImages[flight.aircraft] || [flight.image];
 
   // Extraction des informations de date et heure
   const extractDateTime = (departureString: string) => {
@@ -267,7 +236,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
   return (
     <>
-      {/* Carte de vol principale - INCHANGÉE */}
+      {/* Carte de vol principale */}
       <div className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
         <div className="flex flex-col md:flex-row">
 
@@ -277,7 +246,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
             onClick={handleImageClick}
           >
             <img
-              src={flight.image}
+              src={currentImages[0]}
               alt={flight.aircraft}
               className="w-full h-full object-cover hover:opacity-90 transition-opacity"
             />
@@ -337,7 +306,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
             <div className="relative">
               <img
                 src={currentImages[currentImageIndex]}
-                alt={`Vue de l'appareil ${flight.aircraft}`}
+                alt={`Vue ${currentImageIndex + 1} de l'appareil ${flight.aircraft}`}
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
 
@@ -386,25 +355,21 @@ const FlightCard: React.FC<FlightCardProps> = ({
         </div>
       )}
 
-      {/* MODALE D'INFORMATIONS DÉTAILLÉES - Seulement si useIntegratedModal est true */}
+      {/* MODALE D'INFORMATIONS DÉTAILLÉES */}
       {useIntegratedModal && isInfoModalOpen && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className="min-h-screen pt-26 pb-8 w-full max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
 
-              {/* COLONNE GAUCHE : Formulaire dynamique (auth ou details) */}
+              {/* COLONNE GAUCHE : Formulaire */}
               <section className="bg-white min-h-[630px] md:h-[630px] shadow-lg p-8">
                 {showAuth ? (
-                  // FORMULAIRE D'AUTHENTIFICATION
                   <>
                     <div className="flex justify-between items-center mb-2">
-                      <h1 className="text-3xl font-bold text-gray-800">
-                        Sign In
-                      </h1>
+                      <h1 className="text-3xl font-bold text-gray-800">Sign In</h1>
                       <button
                         onClick={() => setShowAuth(false)}
                         className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
-                        aria-label="Close"
                       >
                         ×
                       </button>
@@ -412,16 +377,14 @@ const FlightCard: React.FC<FlightCardProps> = ({
                     <p className="text-sm mb-6 text-gray-500">or
                       <button
                         onClick={() => setShowAuth(false)}
-                        className="text-[#d3a936] hover:text-[#a98c2f] font-semibold underline ml-2 "
+                        className="text-[#d3a936] hover:text-[#a98c2f] font-semibold underline ml-2"
                       >
                         Sign up
                       </button>
                     </p>
                     <form onSubmit={handleAuthSubmit} className="space-y-4">
                       <div>
-                        <label htmlFor="auth-email" className={labelStyles}>
-                          Email Address *
-                        </label>
+                        <label htmlFor="auth-email" className={labelStyles}>Email Address *</label>
                         <input
                           id="auth-email"
                           type="email"
@@ -433,11 +396,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           placeholder="your.email@example.com"
                         />
                       </div>
-
                       <div>
-                        <label htmlFor="auth-password" className={labelStyles}>
-                          Password *
-                        </label>
+                        <label htmlFor="auth-password" className={labelStyles}>Password *</label>
                         <input
                           id="auth-password"
                           type="password"
@@ -450,7 +410,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           minLength={6}
                         />
                       </div>
-
                       <button
                         type="submit"
                         className="w-full py-3 px-4 bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold transition duration-200 mt-6"
@@ -460,21 +419,16 @@ const FlightCard: React.FC<FlightCardProps> = ({
                     </form>
                   </>
                 ) : (
-                  // FORMULAIRE PRINCIPAL DES DÉTAILS CLIENT
                   <>
                     <div className="flex justify-between items-center mb-2">
-                      <h1 className="text-3xl font-bold text-gray-800">
-                        Enter your details
-                      </h1>
+                      <h1 className="text-3xl font-bold text-gray-800">Enter your details</h1>
                       <button
                         onClick={closeInfoModal}
                         className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
-                        aria-label="Close"
                       >
                         ×
                       </button>
                     </div>
-
                     <p className="text-sm text-gray-600 mb-6">
                       Already have an account?{' '}
                       <button
@@ -485,14 +439,10 @@ const FlightCard: React.FC<FlightCardProps> = ({
                         Sign in here
                       </button>
                     </p>
-
                     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                      {/* Grille Titre + Prénom */}
                       <div className="grid grid-cols-4 gap-1">
                         <div className="col-span-1">
-                          <label htmlFor="title" className={labelStyles}>
-                            Title
-                          </label>
+                          <label htmlFor="title" className={labelStyles}>Title</label>
                           <select
                             id="title"
                             name="title"
@@ -508,11 +458,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             <option value="prof">Prof</option>
                           </select>
                         </div>
-
                         <div className="col-span-3">
-                          <label htmlFor="firstName" className={labelStyles}>
-                            First Name *
-                          </label>
+                          <label htmlFor="firstName" className={labelStyles}>First Name *</label>
                           <input
                             id="firstName"
                             type="text"
@@ -525,12 +472,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           />
                         </div>
                       </div>
-
-                      {/* Champ Nom */}
                       <div>
-                        <label htmlFor="lastName" className={labelStyles}>
-                          Last Name *
-                        </label>
+                        <label htmlFor="lastName" className={labelStyles}>Last Name *</label>
                         <input
                           id="lastName"
                           type="text"
@@ -542,12 +485,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           placeholder="Enter your last name"
                         />
                       </div>
-
-                      {/* Champ Email */}
                       <div>
-                        <label htmlFor="email" className={labelStyles}>
-                          Email Address *
-                        </label>
+                        <label htmlFor="email" className={labelStyles}>Email Address *</label>
                         <input
                           id="email"
                           type="email"
@@ -559,34 +498,19 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           placeholder="your.email@example.com"
                         />
                       </div>
-
-                      {/* Champ Téléphone avec sélecteur de pays */}
                       <div>
-                        <label htmlFor="phone" className={labelStyles}>
-                          Phone Number *
-                        </label>
-                        <PhoneInput
-                          country={country}
+                        <label htmlFor="phone" className={labelStyles}>Phone Number *</label>
+                        <input
+                          id="phone"
+                          type="tel"
+                          name="phone"
                           value={formData.phone}
-                          onChange={handlePhoneChange}
-                          inputProps={{
-                            id: "phone",
-                            required: true,
-                          }}
-                          inputStyle={{
-                            width: "100%",
-                            height: "40px",
-                            color: "#4A5568"
-                          }}
-                          buttonStyle={{
-                            height: "40px",
-                            color: "#4A5568"
-                          }}
-                          enableLongNumbers
+                          onChange={handleInputChange}
+                          required
+                          className={inputStyles}
+                          placeholder="+33 6 12 34 56 78"
                         />
                       </div>
-
-                      {/* Checkboxes options et CGU */}
                       <div className="space-y-4">
                         <div className="flex items-start space-x-3">
                           <input
@@ -601,7 +525,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             Receive our weekly updates and offers free of charge.
                           </label>
                         </div>
-
                         <div className="flex items-start space-x-3">
                           <input
                             type="checkbox"
@@ -613,15 +536,11 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             className={checkboxStyles}
                           />
                           <label htmlFor="acceptTerms" className="text-sm text-gray-700">
-                            By submitting your flight request, you agree to our Terms
-                            and Conditions and Privacy Policy.
+                            By submitting your flight request, you agree to our Terms and Conditions and Privacy Policy.
                           </label>
                         </div>
                       </div>
-
-                      {/* Actions principales */}
                       <div className="flex gap-3">
-
                         <button
                           type="submit"
                           disabled={!isFormValid}
@@ -641,20 +560,14 @@ const FlightCard: React.FC<FlightCardProps> = ({
                 )}
               </section>
 
-              {/* COLONNE DROITE : Récapitulatif visuel du vol */}
+              {/* COLONNE DROITE : Récapitulatif du vol */}
               <section className="relative shadow-lg min-h-[600px] hidden lg:block bg-[#1a1a1a]">
-                {/* Overlay de contenu structuré */}
                 <div className="absolute w-full flex flex-col h-full px-8 py-6">
-
-                  {/* En-tête avec trajet visuel */}
                   <div className="flex items-center justify-between mb-8 px-4 relative">
-                    {/* Aéroport de départ */}
                     <div className="text-center relative top-[38px]">
                       <p className="text-xl text-white font-bold">{departureInfo.code}</p>
                       <p className="text-sm text-gray-400">{departureInfo.city}</p>
                     </div>
-
-                    {/* Représentation graphique du trajet */}
                     <div className="flex-1 relative mx-4">
                       <svg
                         width="100%"
@@ -670,34 +583,20 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           fill="transparent"
                         />
                       </svg>
-
-                      {/* Icône avion positionnée au centre de la courbe */}
                       <div className="absolute top-[1px] left-1/2 transform -translate-x-1/2 rotate-90">
-                        <svg
-                          width="30"
-                          height="30"
-                          viewBox="0 0 24 24"
-                          fill="white"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
                           <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
                         </svg>
                       </div>
-
-                      {/* Type de vol affiché sous la courbe */}
                       <div className="absolute top-[40px] left-1/2 transform -translate-x-1/2 text-center">
                         <p className="text-xs text-white font-medium tracking-widest">{flightType}</p>
                       </div>
                     </div>
-
-                    {/* Aéroport d'arrivée */}
                     <div className="text-center relative top-[38px]">
                       <p className="text-xl text-white font-bold">{arrivalInfo.code}</p>
                       <p className="text-sm text-gray-400">{arrivalInfo.city}</p>
                     </div>
                   </div>
-
-                  {/* Informations détaillées du vol */}
                   {flightDate && flightTime && (
                     <div className="text-center mb-4">
                       <p className="text-white text-sm">
@@ -715,23 +614,19 @@ const FlightCard: React.FC<FlightCardProps> = ({
                       )}
                     </div>
                   )}
-
-                  {/* Carte de cotation de l'opérateur */}
                   <div className="flex justify-center mb-4">
                     <div className="bg-gray-200 text-black rounded-full w-80 h-80 flex flex-col justify-center items-center p-8">
                       <p className="text-sm text-gray-600 mb-2">Quote 1 of 3</p>
-
                       <h2 className="text-[.6rem] text-center text-gray-800">OPERATOR & AIRCRAFT INFORMATION</h2>
-
                       <div className="text-center space-y-2 mt-2">
                         <p className="text-[1rem] font-bold text-gray-900">McDan Aviation</p>
                         <p className="text-sm text-green-600 flex items-center justify-center">
                           <span className="mr-1">✓</span> Client Preferred Operator
                         </p>
-                        <p className="text-base font-semibold text-gray-800 mt-3">Mid Jet <span className="font-normal text-gray-600">- Hawker 800XP</span></p>
-                        <p className="text-sm text-gray-700"><span className="font-semibold">Seats:</span> 8</p>
-                        <p className="text-sm text-gray-700"><span className="font-semibold">Manufactured:</span> 2018</p>
-
+                        <p className="text-base font-semibold text-gray-800 mt-3">
+                          {flight.type} <span className="font-normal text-gray-600">- {flight.aircraft}</span>
+                        </p>
+                        <p className="text-sm text-gray-700"><span className="font-semibold">Seats:</span> {flight.capacity}</p>
                         <div className="mt-4 pt-4 border-t border-gray-400">
                           <p className="text-base font-semibold text-gray-800 mb-2">FLIGHT FEATURES</p>
                           <div className="text-sm text-gray-700 space-y-1">
@@ -746,8 +641,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
                       </div>
                     </div>
                   </div>
-
-                  {/* Message informatif */}
                   <div className="mt-auto px-8">
                     <p className="text-white text-center text-sm leading-relaxed">
                       EnvyJet will share complete operator and aircraft details, along with authentic images of the exact aircraft you'll be flying in.
@@ -755,7 +648,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
                   </div>
                 </div>
               </section>
-
             </div>
           </div>
         </div>
