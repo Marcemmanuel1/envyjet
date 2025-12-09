@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import { useRouter } from 'next/navigation';
 
 interface Flight {
   id: number;
@@ -40,6 +43,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
   onMoreInfo,
   useIntegratedModal = true
 }) => {
+  const router = useRouter();
+
   // États pour la galerie d'images
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -62,6 +67,15 @@ const FlightCard: React.FC<FlightCardProps> = ({
     email: '',
     password: ''
   });
+  const [country, setCountry] = useState<string>("fr");
+
+  // États pour les messages d'erreur
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  // État pour le chargement et les messages d'API
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Construire la galerie d'images depuis l'API
   const getFlightImages = (): string[] => {
@@ -143,6 +157,10 @@ const FlightCard: React.FC<FlightCardProps> = ({
       email: '',
       password: ''
     });
+    setFormErrors({});
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    setIsSubmitting(false);
   };
 
   const handleBookFlight = () => {
@@ -159,6 +177,15 @@ const FlightCard: React.FC<FlightCardProps> = ({
       ...prevState,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    // Effacer l'erreur du champ quand l'utilisateur commence à taper
+    if (formErrors[name]) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleAuthInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -169,30 +196,125 @@ const FlightCard: React.FC<FlightCardProps> = ({
     }));
   };
 
+  const handlePhoneChange = (value: string, countryData: any): void => {
+    setFormData(prevState => ({
+      ...prevState,
+      phone: value,
+    }));
+    setCountry(countryData.countryCode);
+
+    // Effacer l'erreur du téléphone
+    if (formErrors.phone) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.phone;
+        return newErrors;
+      });
+    }
+  };
+
   const handleAuthSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     console.log('Login attempt:', authData);
     setShowAuth(false);
   };
 
-  const handleSubmit = (e: React.FormEvent): void => {
-    e.preventDefault();
-    if (!isFormValid) {
-      console.warn("Formulaire invalide");
-      return;
+  // Validation du formulaire
+  const validateForm = (): boolean => {
+    const errors: { [key: string]: string } = {};
+
+    if (!formData.firstName?.trim()) {
+      errors.firstName = "First name is required";
+    } else if (formData.firstName.trim().length < 2) {
+      errors.firstName = "First name must be at least 2 characters";
     }
-    console.log('Form submitted:', formData);
-    handleBookFlight();
+
+    if (!formData.lastName?.trim()) {
+      errors.lastName = "Last name is required";
+    } else if (formData.lastName.trim().length < 2) {
+      errors.lastName = "Last name must be at least 2 characters";
+    }
+
+    if (!formData.email?.trim()) {
+      errors.email = "Email address is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.phone?.trim()) {
+      errors.phone = "Phone number is required";
+    } else if (formData.phone.replace(/\D/g, '').length < 8) {
+      errors.phone = "Please enter a valid phone number";
+    }
+
+    if (!formData.acceptTerms) {
+      errors.acceptTerms = "You must accept the terms and conditions";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  // Validation du formulaire
-  const isFormValid = Boolean(
-    formData.firstName?.trim() &&
-    formData.lastName?.trim() &&
-    formData.email?.trim() &&
-    formData.phone?.trim() &&
-    formData.acceptTerms
-  );
+  // Soumission du formulaire à l'API
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    setSubmitError(null);
+    setSubmitSuccess(false);
+
+    if (!validateForm()) {
+      console.warn("Form validation failed:", formErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Préparation des données pour l'API
+      const payload = {
+        flight: flight.id.toString(), // ID du vol
+        // Customer details
+        title: formData.title,
+        firstname: formData.firstName.trim(),
+        lastname: formData.lastName.trim(),
+        address: "", // Pas de champ address dans le formulaire actuel
+        phonenumber: formData.phone,
+        receivemails: formData.weeklyUpdates,
+        bookingstage: 1
+      };
+
+      // Envoi à l'API
+      const response = await fetch('https://envyjet.com/api/envy/vol/newInterest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`API error: ${response.status} - ${errorData}`);
+      }
+
+      const result = await response.json();
+      console.log('API Response:', result);
+
+      // Succès - redirection vers booking-last-step
+      setSubmitSuccess(true);
+
+      // Redirection après 1.5 secondes pour laisser voir le message de succès
+      setTimeout(() => {
+        closeInfoModal();
+        router.push('/booking-last-step');
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setSubmitError(error instanceof Error ? error.message : 'An error occurred while submitting the form. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Extraction des informations de date et heure
   const extractDateTime = (departureString: string) => {
@@ -357,12 +479,12 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
       {/* MODALE D'INFORMATIONS DÉTAILLÉES */}
       {useIntegratedModal && isInfoModalOpen && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="min-h-screen pt-26 pb-8 w-full max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
 
               {/* COLONNE GAUCHE : Formulaire */}
-              <section className="bg-white min-h-[630px] md:h-[630px] shadow-lg p-8">
+              <section className="bg-white min-h-[630px] md:h-auto shadow-lg p-8 overflow-visible">
                 {showAuth ? (
                   <>
                     <div className="flex justify-between items-center mb-2">
@@ -439,6 +561,22 @@ const FlightCard: React.FC<FlightCardProps> = ({
                         Sign in here
                       </button>
                     </p>
+
+                    {/* Messages de succès/erreur */}
+                    {submitSuccess && (
+                      <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
+                        <p className="font-semibold">Success!</p>
+                        <p>Your flight interest has been submitted successfully. Redirecting to next step...</p>
+                      </div>
+                    )}
+
+                    {submitError && (
+                      <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
+                        <p className="font-semibold">Error!</p>
+                        <p>{submitError}</p>
+                      </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                       <div className="grid grid-cols-4 gap-1">
                         <div className="col-span-1">
@@ -449,6 +587,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             value={formData.title}
                             onChange={handleInputChange}
                             className={inputStyletitle}
+                            disabled={isSubmitting || submitSuccess}
                           >
                             <option value="">Title</option>
                             <option value="mr">Mr</option>
@@ -467,9 +606,13 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             value={formData.firstName}
                             onChange={handleInputChange}
                             required
-                            className={inputStyles}
+                            className={`${inputStyles} ${formErrors.firstName ? 'border-red-500' : ''}`}
                             placeholder="Enter your first name"
+                            disabled={isSubmitting || submitSuccess}
                           />
+                          {formErrors.firstName && (
+                            <p className="text-red-500 text-sm mt-1">{formErrors.firstName}</p>
+                          )}
                         </div>
                       </div>
                       <div>
@@ -481,9 +624,13 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           value={formData.lastName}
                           onChange={handleInputChange}
                           required
-                          className={inputStyles}
+                          className={`${inputStyles} ${formErrors.lastName ? 'border-red-500' : ''}`}
                           placeholder="Enter your last name"
+                          disabled={isSubmitting || submitSuccess}
                         />
+                        {formErrors.lastName && (
+                          <p className="text-red-500 text-sm mt-1">{formErrors.lastName}</p>
+                        )}
                       </div>
                       <div>
                         <label htmlFor="email" className={labelStyles}>Email Address *</label>
@@ -494,22 +641,45 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           value={formData.email}
                           onChange={handleInputChange}
                           required
-                          className={inputStyles}
+                          className={`${inputStyles} ${formErrors.email ? 'border-red-500' : ''}`}
                           placeholder="your.email@example.com"
+                          disabled={isSubmitting || submitSuccess}
                         />
+                        {formErrors.email && (
+                          <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+                        )}
                       </div>
                       <div>
-                        <label htmlFor="phone" className={labelStyles}>Phone Number *</label>
-                        <input
-                          id="phone"
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          required
-                          className={inputStyles}
-                          placeholder="+33 6 12 34 56 78"
-                        />
+                        <label htmlFor="phone" className={labelStyles}>
+                          Phone Number *
+                        </label>
+                        <div>
+                          <PhoneInput
+                            country={country}
+                            value={formData.phone}
+                            onChange={handlePhoneChange}
+                            inputProps={{
+                              id: "phone",
+                              required: true,
+                              disabled: isSubmitting || submitSuccess
+                            }}
+                            inputStyle={{
+                              width: "100%",
+                              height: "40px",
+                              color: "#4A5568",
+                              ...(isSubmitting || submitSuccess ? { backgroundColor: "#f3f4f6", cursor: "not-allowed" } : {})
+                            }}
+                            buttonStyle={{
+                              height: "40px",
+                              color: "#4A5568",
+                              ...(isSubmitting || submitSuccess ? { backgroundColor: "#f3f4f6", cursor: "not-allowed" } : {})
+                            }}
+                            enableLongNumbers
+                          />
+                        </div>
+                        {formErrors.phone && (
+                          <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>
+                        )}
                       </div>
                       <div className="space-y-4">
                         <div className="flex items-start space-x-3">
@@ -520,6 +690,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             checked={formData.weeklyUpdates}
                             onChange={handleInputChange}
                             className={checkboxStyles}
+                            disabled={isSubmitting || submitSuccess}
                           />
                           <label htmlFor="weeklyUpdates" className="text-sm text-gray-700">
                             Receive our weekly updates and offers free of charge.
@@ -533,26 +704,43 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             checked={formData.acceptTerms}
                             onChange={handleInputChange}
                             required
-                            className={checkboxStyles}
+                            className={`${checkboxStyles} ${formErrors.acceptTerms ? 'border-red-500' : ''}`}
+                            disabled={isSubmitting || submitSuccess}
                           />
-                          <label htmlFor="acceptTerms" className="text-sm text-gray-700">
-                            By submitting your flight request, you agree to our Terms and Conditions and Privacy Policy.
-                          </label>
+                          <div className="flex-1">
+                            <label htmlFor="acceptTerms" className="text-sm text-gray-700">
+                              By submitting your flight request, you agree to our Terms and Conditions and Privacy Policy.
+                            </label>
+                            {formErrors.acceptTerms && (
+                              <p className="text-red-500 text-sm mt-1">{formErrors.acceptTerms}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-3">
                         <button
                           type="submit"
-                          disabled={!isFormValid}
-                          className={`
-                            flex-1 py-3 px-4 font-semibold text-white transition duration-200
-                            ${isFormValid
-                              ? "bg-[#d3a936] hover:bg-[#a98c2f] cursor-pointer"
-                              : "bg-[#d3a936] cursor-not-allowed"
-                            }
-                          `}
+                          className="w-full py-3 px-4 bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={isSubmitting || submitSuccess}
                         >
-                          CONFIRM
+                          {isSubmitting ? (
+                            <span className="flex items-center justify-center">
+                              <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Processing...
+                            </span>
+                          ) : submitSuccess ? (
+                            <span className="flex items-center justify-center">
+                              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              Redirecting...
+                            </span>
+                          ) : (
+                            "CONFIRM"
+                          )}
                         </button>
                       </div>
                     </form>
