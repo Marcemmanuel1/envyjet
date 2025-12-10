@@ -7,23 +7,7 @@ import FlightCard from "../components/FlightCard";
 import Pagination from "../components/Pagination";
 import FlightDetailsModal from "../components/FlightDetailsModal";
 import NavbarSE from '../components/NavbarES';
-
-interface Flight {
-  id: number;
-  departure: string;
-  from: string;
-  to: string;
-  aircraft: string;
-  type: string;
-  capacity: number;
-  price: number;
-  image: string;
-  codeFrom: string;
-  codeTo: string;
-  cityFrom: string;
-  cityTo: string;
-  pricestarting: string;
-}
+import { Flight } from '../types'; // Import depuis types/index.ts
 
 const SharedFlightsPage = () => {
   // États de gestion des données et de l'interface
@@ -47,12 +31,15 @@ const SharedFlightsPage = () => {
     {
       id: 1,
       departure: 'Thu 29 Oct 2026',
+      departureTime: '08:00', // Heure ajoutée
       from: 'Scottsdale, Scottsdale Airport (SDL), AZ, US',
       to: 'Teterboro, Teterboro Airport (TEB), NJ, US',
       aircraft: 'Gulfstream G-IV',
       type: 'Heavy Jet',
       capacity: 14,
       price: 36225,
+      nbSeats: 5, // Sièges disponibles
+      cost: 36225, // Coût du vol
       image: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=400&h=300&fit=crop',
       codeFrom: 'SDL',
       codeTo: 'TEB',
@@ -63,12 +50,15 @@ const SharedFlightsPage = () => {
     {
       id: 2,
       departure: 'Thu 29 Oct 2026',
+      departureTime: '14:30',
       from: 'West Palm Beach, Palm Beach International (PBI), FL, US',
       to: 'Jacksonville, Jacksonville International Airport (JAX), FL, US',
       aircraft: 'Citation X',
       type: 'Super Midsize Jet',
       capacity: 8,
       price: 4528,
+      nbSeats: 3,
+      cost: 4528,
       image: '/images/avion-un.jpg',
       codeFrom: 'PBI',
       codeTo: 'JAX',
@@ -79,12 +69,15 @@ const SharedFlightsPage = () => {
     {
       id: 3,
       departure: 'Fri 30 Oct 2026',
+      departureTime: '11:15',
       from: 'Miami, Miami International Airport (MIA), FL, US',
       to: 'New York, Teterboro Airport (TEB), NJ, US',
       aircraft: 'Challenger 350',
       type: 'Super Midsize Jet',
       capacity: 9,
       price: 15750,
+      nbSeats: 6,
+      cost: 15750,
       image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop',
       codeFrom: 'MIA',
       codeTo: 'TEB',
@@ -95,12 +88,15 @@ const SharedFlightsPage = () => {
     {
       id: 4,
       departure: 'Fri 30 Oct 2026',
+      departureTime: '19:45',
       from: 'Los Angeles, Van Nuys Airport (VNY), CA, US',
       to: 'Las Vegas, Henderson Executive Airport (HND), NV, US',
       aircraft: 'Learjet 75',
       type: 'Light Jet',
       capacity: 6,
       price: 8900,
+      nbSeats: 4,
+      cost: 8900,
       image: '/images/avion-deux.jpg',
       codeFrom: 'VNY',
       codeTo: 'HND',
@@ -115,12 +111,15 @@ const SharedFlightsPage = () => {
     {
       id: 5,
       departure: 'Sat 31 Oct 2026',
+      departureTime: '09:30',
       from: 'Chicago, Chicago Midway Airport (MDW), IL, US',
       to: 'Aspen, Aspen-Pitkin County Airport (ASE), CO, US',
       aircraft: 'Citation Sovereign',
       type: 'Midsize Jet',
       capacity: 8,
       price: 18500,
+      nbSeats: 7,
+      cost: 18500,
       image: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=400&h=300&fit=crop',
       codeFrom: 'MDW',
       codeTo: 'ASE',
@@ -131,12 +130,15 @@ const SharedFlightsPage = () => {
     {
       id: 6,
       departure: 'Sat 31 Oct 2026',
+      departureTime: '16:20',
       from: 'Dallas, Dallas Love Field (DAL), TX, US',
       to: 'Houston, William P. Hobby Airport (HOU), TX, US',
       aircraft: 'Phenom 300',
       type: 'Light Jet',
       capacity: 7,
       price: 6200,
+      nbSeats: 5,
+      cost: 6200,
       image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop',
       codeFrom: 'DAL',
       codeTo: 'HOU',
@@ -147,12 +149,15 @@ const SharedFlightsPage = () => {
     {
       id: 7,
       departure: 'Sun 01 Nov 2026',
+      departureTime: '13:00',
       from: 'San Francisco, San Francisco International (SFO), CA, US',
       to: 'Seattle, Boeing Field (BFI), WA, US',
       aircraft: 'Global 6000',
       type: 'Ultra Long Range',
       capacity: 13,
       price: 28900,
+      nbSeats: 10,
+      cost: 28900,
       image: 'images/avion-un.jpg',
       codeFrom: 'SFO',
       codeTo: 'BFI',
@@ -163,12 +168,15 @@ const SharedFlightsPage = () => {
     {
       id: 8,
       departure: 'Sun 01 Nov 2026',
+      departureTime: '17:45',
       from: 'Atlanta, DeKalb-Peachtree Airport (PDK), GA, US',
       to: 'Nashville, Nashville International Airport (BNA), TN, US',
       aircraft: 'Citation CJ3',
       type: 'Light Jet',
       capacity: 6,
       price: 7800,
+      nbSeats: 4,
+      cost: 7800,
       image: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=400&h=300&fit=crop',
       codeFrom: 'PDK',
       codeTo: 'BNA',
@@ -434,7 +442,7 @@ const SharedFlightsPage = () => {
                     key={flight.id}
                     flight={flight}
                     onMoreInfo={handleMoreInfo}
-                    useIntegratedModal={shouldUseIntegratedModal(flight)} // Déterminer dynamiquement
+                    useIntegratedModal={shouldUseIntegratedModal(flight)}
                   />
                 ))}
               </div>

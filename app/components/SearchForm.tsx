@@ -4,12 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, User, Plus, Minus } from 'lucide-react';
 
 interface Airport {
-  iata_code: string;
-  icao_code: string;
+  id: number;
   name: string;
-  municipality: string;
-  country_name: string;
-  iso_country: string;
+  city: string;
+  country: string;
+  iata: string;
+  icao: string;
+  full_name: string;
+  cntr_code: string;
 }
 
 interface SearchFormProps {
@@ -35,6 +37,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
   // Fonction pour formater la date au format "11, Oct, 2025"
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+
     const day = date.getDate();
     const month = date.toLocaleString('en', { month: 'short' });
     const year = date.getFullYear();
@@ -52,11 +56,15 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
   // Fonction pour convertir le format "11, Oct, 2025" en "2025-10-11"
   const parseFormattedDate = (formattedDate: string): string => {
-    const [day, month, year] = formattedDate.split(', ');
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const monthIndex = monthNames.findIndex(m => m === month);
-    const date = new Date(parseInt(year), monthIndex, parseInt(day));
-    return date.toISOString().split('T')[0];
+    try {
+      const [day, month, year] = formattedDate.split(', ');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthIndex = monthNames.findIndex(m => m === month);
+      const date = new Date(parseInt(year), monthIndex, parseInt(day));
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      return getTodayDate();
+    }
   };
 
   // États pour les champs de recherche
@@ -87,7 +95,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
   useEffect(() => {
     const loadAirports = async () => {
       try {
-        const response = await fetch('/world-airports.json');
+        const response = await fetch('/airports.json');
         const data = await response.json();
         setAirports(data);
       } catch (error) {
@@ -119,10 +127,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
     if (searchFrom.trim()) {
       const searchTerm = searchFrom.toLowerCase();
       const filtered = airports.filter(airport =>
-        (airport.iata_code?.toLowerCase().includes(searchTerm)) ||
-        (airport.icao_code?.toLowerCase().includes(searchTerm)) ||
+        (airport.iata?.toLowerCase().includes(searchTerm)) ||
+        (airport.icao?.toLowerCase().includes(searchTerm)) ||
         (airport.name?.toLowerCase().includes(searchTerm)) ||
-        (airport.municipality?.toLowerCase().includes(searchTerm))
+        (airport.city?.toLowerCase().includes(searchTerm)) ||
+        (airport.country?.toLowerCase().includes(searchTerm)) ||
+        (airport.full_name?.toLowerCase().includes(searchTerm))
       ).slice(0, 8);
 
       setFilteredFromAirports(filtered);
@@ -138,10 +148,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
     if (searchTo.trim()) {
       const searchTerm = searchTo.toLowerCase();
       const filtered = airports.filter(airport =>
-        (airport.iata_code?.toLowerCase().includes(searchTerm)) ||
-        (airport.icao_code?.toLowerCase().includes(searchTerm)) ||
+        (airport.iata?.toLowerCase().includes(searchTerm)) ||
+        (airport.icao?.toLowerCase().includes(searchTerm)) ||
         (airport.name?.toLowerCase().includes(searchTerm)) ||
-        (airport.municipality?.toLowerCase().includes(searchTerm))
+        (airport.city?.toLowerCase().includes(searchTerm)) ||
+        (airport.country?.toLowerCase().includes(searchTerm)) ||
+        (airport.full_name?.toLowerCase().includes(searchTerm))
       ).slice(0, 8);
 
       setFilteredToAirports(filtered);
@@ -170,15 +182,13 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
   // Sélection d'un aéroport depuis les suggestions
   const selectFromAirport = (airport: Airport) => {
-    const code = airport.iata_code || airport.icao_code;
-    setSearchFrom(`${airport.municipality}, ${airport.name} (${code})`);
+    setSearchFrom(airport.full_name);
     setShowFromSuggestions(false);
     setIsFromFocused(false);
   };
 
   const selectToAirport = (airport: Airport) => {
-    const code = airport.iata_code || airport.icao_code;
-    setSearchTo(`${airport.municipality}, ${airport.name} (${code})`);
+    setSearchTo(airport.full_name);
     setShowToSuggestions(false);
     setIsToFocused(false);
   };
@@ -270,19 +280,18 @@ const SearchForm: React.FC<SearchFormProps> = ({
           />
           {showFromSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">
-              {filteredFromAirports.map((airport, index) => {
-                const code = airport.iata_code || airport.icao_code;
-                return (
-                  <div
-                    key={`from-${code}-${index}`}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
-                    onClick={() => selectFromAirport(airport)}
-                  >
-                    <div className="font-medium">{airport.municipality} ({code})</div>
-                    <div className="text-sm text-gray-600">{airport.name}</div>
+              {filteredFromAirports.map((airport, index) => (
+                <div
+                  key={`from-${airport.id}-${index}`}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
+                  onClick={() => selectFromAirport(airport)}
+                >
+                  <div className="font-medium">{airport.full_name}</div>
+                  <div className="text-sm text-gray-600">
+                    {airport.city}, {airport.country}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -303,19 +312,18 @@ const SearchForm: React.FC<SearchFormProps> = ({
           />
           {showToSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-y-auto">
-              {filteredToAirports.map((airport, index) => {
-                const code = airport.iata_code || airport.icao_code;
-                return (
-                  <div
-                    key={`to-${code}-${index}`}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
-                    onClick={() => selectToAirport(airport)}
-                  >
-                    <div className="font-medium">{airport.municipality} ({code})</div>
-                    <div className="text-sm text-gray-600">{airport.name}</div>
+              {filteredToAirports.map((airport, index) => (
+                <div
+                  key={`to-${airport.id}-${index}`}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
+                  onClick={() => selectToAirport(airport)}
+                >
+                  <div className="font-medium">{airport.full_name}</div>
+                  <div className="text-sm text-gray-600">
+                    {airport.city}, {airport.country}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -331,7 +339,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
             onFocus={handleDateFocus}
             onBlur={handleDateBlur}
             onKeyDown={(e) => handleKeyPress(e, 'date')}
-            min={getTodayDate()}
             className="w-full bg-white px-4 py-4 pl-10 border border-gray-300 focus:outline-none focus:border-[#d3a936] transition-colors absolute opacity-0 pointer-events-none"
           />
           <div

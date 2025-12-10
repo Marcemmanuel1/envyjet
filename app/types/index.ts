@@ -2,29 +2,44 @@
 
 export interface Airport {
   id: number;
-  ident: string;
-  type: string;
   name: string;
-  latitude_deg: number;
-  longitude_deg: number;
-  elevation_ft: number | null;
-  continent: string | null;
-  country_name: string;
-  iso_country: string;
-  region_name: string;
-  iso_region: string;
-  local_region: string;
-  municipality: string;
-  scheduled_service: number;
-  gps_code: string;
-  icao_code: string;
-  iata_code: string | null;
-  local_code: string | null;
-  home_link: string | null;
-  wikipedia_link: string | null;
-  keywords: string | null;
-  score: number;
-  last_updated: string;
+  city: string;
+  country: string;
+  iata: string;
+  icao: string;
+  latitude: number;
+  longitude: number;
+  altitude: number;
+  precision: number;
+  dst: string;
+  timezone: string;
+  type: string;
+  source: string;
+  cntr_code: string;
+  full_name: string;
+  deleted_at: string | null;
+}
+export interface Flight {
+  id: number;
+  departure: string;
+  departureTime: string;
+  from: string;
+  to: string;
+  aircraft: string;
+  type: string;
+  capacity: number;
+  price: number;
+  nbSeats: number | null;
+  cost: number;
+  image: string;
+  codeFrom: string;
+  codeTo: string;
+  cityFrom: string;
+  cityTo: string;
+  pricestarting: string;
+  interior_photo?: string;
+  cabin_layout?: string;
+  exterior_photo?: string;
 }
 
 export interface PetData {

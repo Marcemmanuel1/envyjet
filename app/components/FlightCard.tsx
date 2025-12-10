@@ -5,27 +5,7 @@ import { X } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { useRouter } from 'next/navigation';
-
-interface Flight {
-  id: number;
-  departure: string;
-  from: string;
-  to: string;
-  aircraft: string;
-  type: string;
-  capacity: number;
-  price: number;
-  image: string;
-  pricestarting: string;
-  codeFrom: string;
-  codeTo: string;
-  cityFrom: string;
-  cityTo: string;
-  interior_photo?: string;
-  cabin_layout?: string;
-  exterior_photo?: string;
-}
-
+import { Flight } from '../types';
 interface FlightCardProps {
   flight: Flight;
   onMoreInfo?: (flight: Flight) => void;
@@ -84,8 +64,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
     // Image principale (exterior ou image par défaut)
     if (flight.exterior_photo) {
       images.push(flight.exterior_photo);
-    } else if (flight.image) {
-      images.push(flight.image);
     }
 
     // Photo intérieur
@@ -161,11 +139,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
     setSubmitError(null);
     setSubmitSuccess(false);
     setIsSubmitting(false);
-  };
-
-  const handleBookFlight = () => {
-    closeInfoModal();
-    console.log('Vol réservé:', flight);
   };
 
   // Gestionnaires de formulaire
@@ -316,8 +289,68 @@ const FlightCard: React.FC<FlightCardProps> = ({
     }
   };
 
+  // Fonctions d'extraction des données
+  const extractAirportCode = (airportString: string): string => {
+    if (!airportString) return 'N/A';
+    const match = airportString.match(/\(([A-Z]{3})\)/);
+    return match ? match[1] : '';
+  };
+
+  const formatDate = (dateTimeString: string | null): string => {
+    if (!dateTimeString) return 'Date not available';
+    const date = new Date(dateTimeString);
+    if (isNaN(date.getTime())) return 'Date not available';
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const dayName = days[date.getDay()];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${dayName} ${day} ${month} ${year}`;
+  };
+
+  // Déterminer le type d'avion basé sur la capacité
+  const getAircraftType = (capacity: number | null): string => {
+    if (!capacity || capacity <= 6) return 'Light Jet';
+    if (capacity <= 8) return 'Midsize Jet';
+    if (capacity <= 12) return 'Super Midsize Jet';
+    return 'Heavy Jet';
+  };
+
+  // Obtenir le nom de l'avion
+  const getAircraftName = (type: string): string => {
+    const aircraftMap: Record<string, string[]> = {
+      'Light Jet': ['Citation CJ3', 'Learjet 75', 'Phenom 300'],
+      'Midsize Jet': ['Citation Sovereign', 'Citation X'],
+      'Super Midsize Jet': ['Challenger 350', 'Gulfstream G200'],
+      'Heavy Jet': ['Gulfstream G-IV', 'Global 6000', 'Falcon 7X']
+    };
+
+    const available = aircraftMap[type] || ['Citation X'];
+    return available[Math.floor(Math.random() * available.length)];
+  };
+
+  // Préparer les données pour l'affichage
+  const departure = formatDate(flight.departureTime);
+  const aircraftType = getAircraftType(flight.nbSeats);
+  const aircraftName = getAircraftName(aircraftType);
+  const capacity = flight.nbSeats || 0;
+
+  // Données pour la colonne droite
+  const flightType = "EMPTY LEG";
+  const passengers = capacity;
+
+  // Extraire le code IATA pour l'affichage dans le modal
+  const departureCode = extractAirportCode(flight.from);
+  const arrivalCode = extractAirportCode(flight.to);
+
   // Extraction des informations de date et heure
   const extractDateTime = (departureString: string) => {
+    if (departureString === 'Date not available') return { date: "", time: "12:00" };
+
     const parts = departureString.split(' ');
     if (parts.length < 4) return { date: "", time: "12:00" };
 
@@ -340,25 +373,24 @@ const FlightCard: React.FC<FlightCardProps> = ({
     };
   };
 
-  const { date, time } = extractDateTime(flight.departure);
+  const { date, time } = extractDateTime(departure);
 
-  // Données pour la colonne droite
-  const flightType = "EMPTY LEG";
-  const passengers = flight.capacity;
-  const departureInfo = {
-    code: flight.codeFrom || "N/A",
-    city: flight.cityFrom || flight.from
+  // Fonction pour extraire la ville seulement (pour le modal)
+  const extractCityOnly = (airportString: string): string => {
+    if (!airportString) return '';
+    const parts = airportString.split(',');
+    if (parts.length >= 2) {
+      // Prendre la deuxième partie (après la virgule) et enlever le code pays
+      const cityPart = parts[1].trim();
+      // Enlever tout ce qui est entre parenthèses et le code pays à la fin
+      return cityPart.replace(/\([^)]*\)/g, '').replace(/,?\s*[A-Z]{2}$/, '').trim();
+    }
+    return parts[0].trim();
   };
-  const arrivalInfo = {
-    code: flight.codeTo || "N/A",
-    city: flight.cityTo || flight.to
-  };
-  const flightDate = date;
-  const flightTime = time;
 
   return (
     <>
-      {/* Carte de vol principale */}
+      {/* Carte de vol principale - STYLE DE L'ANCIEN FICHIER */}
       <div className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
         <div className="flex flex-col md:flex-row">
 
@@ -369,39 +401,47 @@ const FlightCard: React.FC<FlightCardProps> = ({
           >
             <img
               src={currentImages[0]}
-              alt={flight.aircraft}
+              alt={aircraftName}
               className="w-full h-full object-cover hover:opacity-90 transition-opacity"
             />
           </div>
 
-          {/* Section informations du vol */}
+          {/* Section informations du vol - STYLE ORIGINAL MAIS AVEC AÉROPORTS COMPLETS */}
           <div className="flex-1 p-6 flex flex-col justify-between">
             <div>
               <p className="text-gray-600 text-sm mb-4">
-                Departure: <span className="font-semibold text-gray-800">{flight.departure}</span>
+                Departure: <span className="font-semibold text-gray-800">{departure}</span>
               </p>
-              <div className="flex flex-col md:flex-row md:items-center text-gray-800 text-base">
-                <span className="font-medium">{flight.from}</span>
-                <span className="mx-2 text-[#d3a936] my-1 md:my-0">→</span>
-                <span className="font-medium">{flight.to}</span>
+              <div className="flex flex-col md:flex-row md:items-center text-gray-800">
+                <div className="mb-2 md:mb-0 md:mr-4 flex-1">
+                  <p className="font-medium text-base text-gray-800 leading-tight">
+                    {flight.from}
+                  </p>
+                </div>
+                <span className="mx-2 text-[#d3a936] my-1 md:my-0 text-xl">→</span>
+                <div className="mt-2 md:mt-0 flex-1">
+                  <p className="font-medium text-base text-gray-800 leading-tight">
+                    {flight.to}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="text-gray-600 text-sm">
+            <div className="text-gray-600 text-sm mt-4">
               <span>Aircraft: </span>
-              <span className="text-[#d3a936] font-semibold">{flight.aircraft}</span>
-              <span>, {flight.type}, Capacity: {flight.capacity} passengers</span>
+              <span className="text-[#d3a936] font-semibold">{aircraftName}</span>
+              <span>, {aircraftType}, Capacity: {capacity} passengers</span>
             </div>
           </div>
 
-          {/* Section prix et action */}
+          {/* Section prix et action - STYLE ORIGINAL */}
           <div className="p-6 md:w-54 flex md:flex-col justify-between items-start md:items-end border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50">
             <div className="w-full mb-4">
               <p className="text-gray-600 text-left md:text-right text-sm mb-1">
-                {flight.pricestarting || "Price starting from"}
+                Price starting from
               </p>
               <p className="text-2xl md:text-3xl text-left md:text-right font-bold text-gray-800">
-                €{flight.price.toLocaleString()}
+                €{flight.cost.toLocaleString()}
               </p>
             </div>
             <button
@@ -428,7 +468,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
             <div className="relative">
               <img
                 src={currentImages[currentImageIndex]}
-                alt={`Vue ${currentImageIndex + 1} de l'appareil ${flight.aircraft}`}
+                alt={`Vue ${currentImageIndex + 1} de l'appareil ${aircraftName}`}
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
 
@@ -752,9 +792,9 @@ const FlightCard: React.FC<FlightCardProps> = ({
               <section className="relative shadow-lg min-h-[600px] hidden lg:block bg-[#1a1a1a]">
                 <div className="absolute w-full flex flex-col h-full px-8 py-6">
                   <div className="flex items-center justify-between mb-8 px-4 relative">
-                    <div className="text-center relative top-[38px]">
-                      <p className="text-xl text-white font-bold">{departureInfo.code}</p>
-                      <p className="text-sm text-gray-400">{departureInfo.city}</p>
+                    <div className="text-center relative top-[38px] max-w-[160px]">
+                      <p className="text-xl text-white font-bold">{departureCode}</p>
+                      <p className="text-sm text-gray-400 truncate">{extractCityOnly(flight.from)}</p>
                     </div>
                     <div className="flex-1 relative mx-4">
                       <svg
@@ -780,20 +820,20 @@ const FlightCard: React.FC<FlightCardProps> = ({
                         <p className="text-xs text-white font-medium tracking-widest">{flightType}</p>
                       </div>
                     </div>
-                    <div className="text-center relative top-[38px]">
-                      <p className="text-xl text-white font-bold">{arrivalInfo.code}</p>
-                      <p className="text-sm text-gray-400">{arrivalInfo.city}</p>
+                    <div className="text-center relative top-[38px] max-w-[160px]">
+                      <p className="text-xl text-white font-bold">{arrivalCode}</p>
+                      <p className="text-sm text-gray-400 truncate">{extractCityOnly(flight.to)}</p>
                     </div>
                   </div>
-                  {flightDate && flightTime && (
+                  {date && time && (
                     <div className="text-center mb-4">
                       <p className="text-white text-sm">
-                        <span className="text-gray-400">Date and Time:</span> {new Date(flightDate).toLocaleDateString('en-US', {
+                        <span className="text-gray-400">Date and Time:</span> {new Date(date).toLocaleDateString('en-US', {
                           weekday: 'short',
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'
-                        })}, @{flightTime}
+                        })}, @{time}
                       </p>
                       {passengers > 0 && (
                         <p className="text-white text-sm mt-1">
@@ -802,6 +842,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
                       )}
                     </div>
                   )}
+
                   <div className="flex justify-center mb-4">
                     <div className="bg-gray-200 text-black rounded-full w-80 h-80 flex flex-col justify-center items-center p-8">
                       <p className="text-sm text-gray-600 mb-2">Quote 1 of 3</p>
@@ -812,9 +853,9 @@ const FlightCard: React.FC<FlightCardProps> = ({
                           <span className="mr-1">✓</span> Client Preferred Operator
                         </p>
                         <p className="text-base font-semibold text-gray-800 mt-3">
-                          {flight.type} <span className="font-normal text-gray-600">- {flight.aircraft}</span>
+                          {aircraftType} <span className="font-normal text-gray-600">- {aircraftName}</span>
                         </p>
-                        <p className="text-sm text-gray-700"><span className="font-semibold">Seats:</span> {flight.capacity}</p>
+                        <p className="text-sm text-gray-700"><span className="font-semibold">Seats:</span> {capacity}</p>
                         <div className="mt-4 pt-4 border-t border-gray-400">
                           <p className="text-base font-semibold text-gray-800 mb-2">FLIGHT FEATURES</p>
                           <div className="text-sm text-gray-700 space-y-1">

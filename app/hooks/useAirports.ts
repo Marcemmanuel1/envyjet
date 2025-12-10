@@ -13,7 +13,7 @@ export const useAirports = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch("/world-airports.json");
+        const response = await fetch("/airports.json");
         if (!response.ok) {
           throw new Error("Failed to load airports data");
         }
@@ -38,37 +38,77 @@ export const useAirports = () => {
 
       return airports
         .filter((airport) => {
-          const iataCode = (airport.iata_code || "").toLowerCase();
-          const icaoCode = (airport.icao_code || "").toLowerCase();
+          const iataCode = (airport.iata || "").toLowerCase();
+          const icaoCode = (airport.icao || "").toLowerCase();
           const name = (airport.name || "").toLowerCase();
-          const municipality = (airport.municipality || "").toLowerCase();
-          const countryName = (airport.country_name || "").toLowerCase();
-          const keywords = (airport.keywords || "").toLowerCase();
+          const city = (airport.city || "").toLowerCase();
+          const country = (airport.country || "").toLowerCase();
+          const fullName = (airport.full_name || "").toLowerCase();
 
           return (
             iataCode.includes(lowercaseQuery) ||
             icaoCode.includes(lowercaseQuery) ||
             name.includes(lowercaseQuery) ||
-            municipality.includes(lowercaseQuery) ||
-            countryName.includes(lowercaseQuery) ||
-            keywords.includes(lowercaseQuery)
+            city.includes(lowercaseQuery) ||
+            country.includes(lowercaseQuery) ||
+            fullName.includes(lowercaseQuery)
           );
         })
         .sort((a, b) => {
-          if (a.iata_code && !b.iata_code) return -1;
-          if (!a.iata_code && b.iata_code) return 1;
+          // Priorité aux aéroports avec code IATA
+          if (a.iata && !b.iata) return -1;
+          if (!a.iata && b.iata) return 1;
 
-          const aIataMatch = a.iata_code?.toLowerCase() === lowercaseQuery;
-          const bIataMatch = b.iata_code?.toLowerCase() === lowercaseQuery;
+          // Priorité à la correspondance exacte du code IATA
+          const aIataMatch = a.iata?.toLowerCase() === lowercaseQuery;
+          const bIataMatch = b.iata?.toLowerCase() === lowercaseQuery;
           if (aIataMatch && !bIataMatch) return -1;
           if (!aIataMatch && bIataMatch) return 1;
 
-          return b.score - a.score;
+          // Priorité à la correspondance exacte du code ICAO
+          const aIcaoMatch = a.icao?.toLowerCase() === lowercaseQuery;
+          const bIcaoMatch = b.icao?.toLowerCase() === lowercaseQuery;
+          if (aIcaoMatch && !bIcaoMatch) return -1;
+          if (!aIcaoMatch && bIcaoMatch) return 1;
+
+          // Sinon, trier par nom
+          return a.name.localeCompare(b.name);
         })
         .slice(0, 10);
     },
     [airports]
   );
 
-  return { airports, loading, error, searchAirports };
+  const getAirportByIata = useCallback(
+    (iataCode: string): Airport | undefined => {
+      return airports.find((airport) => airport.iata === iataCode);
+    },
+    [airports]
+  );
+
+  const getAirportByIcao = useCallback(
+    (icaoCode: string): Airport | undefined => {
+      return airports.find((airport) => airport.icao === icaoCode);
+    },
+    [airports]
+  );
+
+  const getAirportsByCountry = useCallback(
+    (country: string): Airport[] => {
+      return airports.filter((airport) =>
+        airport.country.toLowerCase().includes(country.toLowerCase())
+      );
+    },
+    [airports]
+  );
+
+  return {
+    airports,
+    loading,
+    error,
+    searchAirports,
+    getAirportByIata,
+    getAirportByIcao,
+    getAirportsByCountry,
+  };
 };
