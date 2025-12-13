@@ -256,7 +256,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           <input
             ref={fromInputRef}
             type="text"
-            placeholder="From (optional)"
+            placeholder="From"
             value={isFromFocused ? searchFrom : truncateText(searchFrom)}
             onChange={(e) => setSearchFrom(e.target.value)}
             onFocus={handleFromFocus}
@@ -288,7 +288,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           <input
             ref={toInputRef}
             type="text"
-            placeholder="To (optional)"
+            placeholder="To"
             value={isToFocused ? searchTo : truncateText(searchTo)}
             onChange={(e) => setSearchTo(e.target.value)}
             onFocus={handleToFocus}
@@ -332,7 +332,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             className="w-full bg-white px-4 py-4 pl-10 border border-gray-300 cursor-pointer"
             onClick={() => dateInputRef.current?.showPicker()}
           >
-            {isDateFocused ? searchDate : (displayDate || 'Date (optional)')}
+            {isDateFocused ? searchDate : (displayDate || 'Date')}
           </div>
         </div>
 
