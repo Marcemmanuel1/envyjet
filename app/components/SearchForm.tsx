@@ -36,6 +36,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
   // Fonction pour formater la date au format "11, Oct, 2025"
   const formatDate = (dateString: string): string => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return '';
 
@@ -54,25 +55,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
     return `${year}-${month}-${day}`;
   };
 
-  // Fonction pour convertir le format "11, Oct, 2025" en "2025-10-11"
-  const parseFormattedDate = (formattedDate: string): string => {
-    try {
-      const [day, month, year] = formattedDate.split(', ');
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const monthIndex = monthNames.findIndex(m => m === month);
-      const date = new Date(parseInt(year), monthIndex, parseInt(day));
-      return date.toISOString().split('T')[0];
-    } catch (error) {
-      return getTodayDate();
-    }
-  };
-
   // États pour les champs de recherche
   const [passengers, setPassengers] = useState(initialPassengers);
   const [searchFrom, setSearchFrom] = useState(initialFrom);
   const [searchTo, setSearchTo] = useState(initialTo);
-  const [searchDate, setSearchDate] = useState(initialDate || getTodayDate());
-  const [displayDate, setDisplayDate] = useState(formatDate(initialDate || getTodayDate()));
+  const [searchDate, setSearchDate] = useState(initialDate);
+  const [displayDate, setDisplayDate] = useState(initialDate ? formatDate(initialDate) : '');
 
   // États pour gérer le focus (afficher le texte complet ou tronqué)
   const [isFromFocused, setIsFromFocused] = useState(false);
@@ -106,20 +94,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
     loadAirports();
   }, []);
 
-  // Initialisation de la date du jour si aucune date initiale n'est fournie
-  useEffect(() => {
-    if (!initialDate) {
-      const today = getTodayDate();
-      setSearchDate(today);
-      setDisplayDate(formatDate(today));
-    } else {
-      setDisplayDate(formatDate(initialDate));
-    }
-  }, [initialDate]);
-
   // Mise à jour de la date affichée quand searchDate change
   useEffect(() => {
-    setDisplayDate(formatDate(searchDate));
+    setDisplayDate(searchDate ? formatDate(searchDate) : '');
   }, [searchDate]);
 
   // Filtrage des aéroports pour le champ "From"
@@ -170,8 +147,18 @@ const SearchForm: React.FC<SearchFormProps> = ({
     return text.substring(0, maxLength) + '...';
   };
 
-  // Gestion de la soumission du formulaire
+  // Validation et gestion de la soumission du formulaire
   const handleSearch = () => {
+    // Vérifier qu'au moins un critère de recherche est renseigné
+    const hasFrom = searchFrom.trim().length > 0;
+    const hasTo = searchTo.trim().length > 0;
+    const hasDate = searchDate.length > 0;
+
+    if (!hasFrom && !hasTo && !hasDate) {
+      alert('Veuillez renseigner au moins un critère de recherche (aéroport de départ, d\'arrivée ou date)');
+      return;
+    }
+
     onSearch({
       from: searchFrom.trim(),
       to: searchTo.trim(),
@@ -269,7 +256,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           <input
             ref={fromInputRef}
             type="text"
-            placeholder="From"
+            placeholder="From (optional)"
             value={isFromFocused ? searchFrom : truncateText(searchFrom)}
             onChange={(e) => setSearchFrom(e.target.value)}
             onFocus={handleFromFocus}
@@ -301,7 +288,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           <input
             ref={toInputRef}
             type="text"
-            placeholder="To"
+            placeholder="To (optional)"
             value={isToFocused ? searchTo : truncateText(searchTo)}
             onChange={(e) => setSearchTo(e.target.value)}
             onFocus={handleToFocus}
@@ -345,7 +332,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
             className="w-full bg-white px-4 py-4 pl-10 border border-gray-300 cursor-pointer"
             onClick={() => dateInputRef.current?.showPicker()}
           >
-            {isDateFocused ? searchDate : displayDate}
+            {isDateFocused ? searchDate : (displayDate || 'Date (optional)')}
           </div>
         </div>
 
