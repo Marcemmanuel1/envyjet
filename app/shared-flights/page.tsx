@@ -7,7 +7,7 @@ import FlightCard from "../components/FlightCard";
 import Pagination from "../components/Pagination";
 import FlightDetailsModal from "../components/FlightDetailsModal";
 import NavbarSE from '../components/NavbarES';
-import { Flight } from '../types'; // Import depuis types/index.ts
+import { Flight } from '../types';
 
 const SharedFlightsPage = () => {
   // États de gestion des données et de l'interface
@@ -45,7 +45,10 @@ const SharedFlightsPage = () => {
       codeTo: 'TEB',
       cityFrom: 'Scottsdale',
       cityTo: 'Teterboro',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     },
     {
       id: 2,
@@ -64,7 +67,10 @@ const SharedFlightsPage = () => {
       codeTo: 'JAX',
       cityFrom: 'West Palm Beach',
       cityTo: 'Jacksonville',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     },
     {
       id: 3,
@@ -83,7 +89,10 @@ const SharedFlightsPage = () => {
       codeTo: 'TEB',
       cityFrom: 'Miami',
       cityTo: 'New York',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     },
     {
       id: 4,
@@ -102,7 +111,10 @@ const SharedFlightsPage = () => {
       codeTo: 'HND',
       cityFrom: 'Los Angeles',
       cityTo: 'Las Vegas',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     }
   ];
 
@@ -125,7 +137,10 @@ const SharedFlightsPage = () => {
       codeTo: 'ASE',
       cityFrom: 'Chicago',
       cityTo: 'Aspen',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     },
     {
       id: 6,
@@ -144,7 +159,10 @@ const SharedFlightsPage = () => {
       codeTo: 'HOU',
       cityFrom: 'Dallas',
       cityTo: 'Houston',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     },
     {
       id: 7,
@@ -163,7 +181,10 @@ const SharedFlightsPage = () => {
       codeTo: 'BFI',
       cityFrom: 'San Francisco',
       cityTo: 'Seattle',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     },
     {
       id: 8,
@@ -182,7 +203,10 @@ const SharedFlightsPage = () => {
       codeTo: 'BNA',
       cityFrom: 'Atlanta',
       cityTo: 'Nashville',
-      pricestarting: pricestarting
+      pricestarting: pricestarting,
+      interior_photo: '',  // Ajoutez ceci
+      cabin_layout: '',    // Ajoutez ceci
+      exterior_photo: ''
     }
   ];
 

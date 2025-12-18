@@ -1,5 +1,4 @@
 // types/index.ts
-
 export interface Airport {
   id: number;
   name: string;
@@ -19,6 +18,7 @@ export interface Airport {
   full_name: string;
   deleted_at: string | null;
 }
+
 export interface Flight {
   id: number;
   departure: string;
@@ -37,9 +37,9 @@ export interface Flight {
   cityFrom: string;
   cityTo: string;
   pricestarting: string;
-  interior_photo?: string;
-  cabin_layout?: string;
-  exterior_photo?: string;
+  interior_photo: string; // Retiré le "?"
+  cabin_layout: string; // Retiré le "?"
+  exterior_photo: string; // Retiré le "?"
 }
 
 export interface PetData {
