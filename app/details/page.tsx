@@ -1,14 +1,14 @@
+// app/details/page.tsx
 "use client";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 /**
  * Interface pour typer les données du formulaire de contact
- * Contient toutes les informations personnelles du client
  */
 interface FormData {
   title: string;
@@ -16,13 +16,13 @@ interface FormData {
   lastName: string;
   email: string;
   phone: string;
+  address: string;
   weeklyUpdates: boolean;
   acceptTerms: boolean;
 }
 
 /**
  * Interface pour les données d'authentification
- * Utilisée pour le formulaire de connexion existant
  */
 interface AuthData {
   email: string;
@@ -31,7 +31,6 @@ interface AuthData {
 
 /**
  * Interface pour les données de réservation stockées en session
- * Représente la sélection de vol faite par l'utilisateur
  */
 interface BookingData {
   type: 'oneWay' | 'roundTrip' | 'multiLeg';
@@ -40,42 +39,101 @@ interface BookingData {
 }
 
 /**
- * Interface pour structurer les informations d'aéroport
- * Utilisée pour afficher les détails des aéroports de départ et d'arrivée
+ * Interface pour un aéroport
  */
 interface AirportInfo {
   code: string;
   name: string;
   city: string;
+  country: string;
+  id?: number;
 }
 
 /**
- * Parse une chaîne d'aéroport pour extraire le code, nom et ville
- * Format attendu: "LHR - London Heathrow Airport, London"
- * @param airportString - Chaîne brute de l'aéroport
- * @returns Objet AirportInfo structuré
+ * Interface pour un trajet de vol
+ */
+interface FlightLeg {
+  from: string;
+  to: string;
+  fromId?: number | null;
+  toId?: number | null;
+  date: string;
+  time: string;
+  passengers: {
+    adults: number;
+    children: number;
+    infants: number;
+  };
+  pets: {
+    small: number;
+    large: number;
+  };
+  luggage: {
+    carryOn: number;
+    holdLuggage: number;
+    skis: number;
+    golfBag: number;
+    others: number;
+  };
+}
+
+/**
+ * Extrait les informations de l'aéroport depuis la chaîne full_name
  */
 const extractAirportInfo = (airportString: string): AirportInfo => {
-  if (!airportString) return { code: '', name: '', city: '' };
+  if (!airportString) return { code: '', name: '', city: '', country: '' };
 
-  // Séparer le code IATA du reste
-  const parts = airportString.split('-');
-  const code = parts[0]?.trim() || '';
+  // Exemple: "Port Bouet Airport, Abidjan (ABJ), CI"
+  const regex = /^([^,]+),\s*([^()]+)\s*\(([^)]+)\)\s*,\s*([A-Z]{2})$/;
+  const match = airportString.match(regex);
 
-  // Extraire le nom et la ville depuis la partie restante
-  const remaining = parts[1]?.trim() || '';
-  const cityParts = remaining.split(',');
+  if (match) {
+    return {
+      name: match[1].trim(), // "Port Bouet Airport"
+      city: match[2].trim(), // "Abidjan" - SEULEMENT LA VILLE
+      code: match[3].trim(), // "ABJ"
+      country: match[4].trim() // "CI"
+    };
+  }
 
-  const name = cityParts[0]?.trim() || '';
-  const city = cityParts[1]?.trim() || cityParts[0]?.trim() || '';
+  // Fallback si le format n'est pas reconnu
+  return {
+    code: '',
+    name: airportString,
+    city: airportString,
+    country: ''
+  };
+};
 
-  return { code, name, city };
+/**
+ * Extrait SEULEMENT la ville pour l'affichage
+ */
+const getCityOnly = (airportString: string): string => {
+  const info = extractAirportInfo(airportString);
+  return info.city || airportString;
+};
+
+/**
+ * Extrait l'ID de l'aéroport depuis les données de réservation
+ */
+const extractAirportId = (airportData: any): number | null => {
+  if (!airportData) return null;
+
+  // Si c'est un objet avec un ID
+  if (typeof airportData === 'object' && airportData.id) {
+    return airportData.id;
+  }
+
+  // Si c'est juste l'ID numérique
+  if (typeof airportData === 'number') {
+    return airportData;
+  }
+
+  return null;
 };
 
 /**
  * Convertit le type technique de vol en libellé utilisateur
- * @param type - Type technique du vol
- * @returns Libellé formaté pour l'affichage
  */
 const getFlightTypeLabel = (type: 'oneWay' | 'roundTrip' | 'multiLeg'): string => {
   const labels = {
@@ -88,58 +146,55 @@ const getFlightTypeLabel = (type: 'oneWay' | 'roundTrip' | 'multiLeg'): string =
 
 /**
  * Composant principal pour la page de finalisation de réservation
- * Gère à la fois l'authentification et la saisie des informations personnelles
  */
 export default function Details() {
   const router = useRouter();
 
-  // États de contrôle d'accès et de chargement
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // États des données formulaire
   const [authData, setAuthData] = useState<AuthData>({
     email: '',
     password: ''
   });
+
   const [formData, setFormData] = useState<FormData>({
     title: "",
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    address: "",
     weeklyUpdates: false,
     acceptTerms: false
   });
 
-  // États pour la localisation et les données de vol
   const [country, setCountry] = useState<string>("ci");
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
-  const [departureInfo, setDepartureInfo] = useState<AirportInfo>({
-    code: 'ABJ',
-    name: 'Félix-Houphouët-Boigny International Airport',
-    city: 'Abidjan'
-  });
-  const [arrivalInfo, setArrivalInfo] = useState<AirportInfo>({
-    code: 'MBW',
-    name: 'Mbalmayo Airport',
-    city: 'Mount Vernon'
-  });
+  const [departureCity, setDepartureCity] = useState<string>("Abidjan");
+  const [arrivalCity, setArrivalCity] = useState<string>("Mount Vernon");
+  const [departureCode, setDepartureCode] = useState<string>("ABJ");
+  const [arrivalCode, setArrivalCode] = useState<string>("MBW");
   const [flightType, setFlightType] = useState<string>('ONE-WAY');
   const [flightDate, setFlightDate] = useState<string>("");
   const [flightTime, setFlightTime] = useState<string>("");
   const [passengers, setPassengers] = useState<number>(0);
+  const [airportIds, setAirportIds] = useState<{
+    departureId?: number | null;
+    arrivalId?: number | null;
+    legs?: Array<{ fromId?: number | null; toId?: number | null }>;
+  }>({});
 
   /**
-   * VÉRIFICATION D'ACCÈS : S'assure que l'utilisateur arrive bien d'un processus de réservation
-   * Effectue plusieurs contrôles de sécurité avant d'autoriser l'accès à la page
+   * VÉRIFICATION D'ACCÈS
    */
   useEffect(() => {
     const checkAccess = () => {
       const storedData = sessionStorage.getItem('bookingData');
 
-      // Redirection immédiate si pas de données de réservation
       if (!storedData) {
         console.warn('Accès non autorisé: aucune donnée de réservation trouvée');
         router.push('/');
@@ -149,7 +204,6 @@ export default function Details() {
       try {
         const parsed: BookingData = JSON.parse(storedData);
 
-        // Vérification de la fraîcheur des données (1 heure max)
         const timestamp = new Date(parsed.timestamp).getTime();
         const now = new Date().getTime();
         const oneHour = 60 * 60 * 1000;
@@ -161,7 +215,6 @@ export default function Details() {
           return;
         }
 
-        // Validation structurelle des données selon le type de vol
         const hasValidData =
           parsed.type &&
           parsed.data &&
@@ -178,25 +231,52 @@ export default function Details() {
           return;
         }
 
-        // Accès autorisé - initialisation des données d'affichage
         setBookingData(parsed);
         setFlightType(getFlightTypeLabel(parsed.type));
-        setIsAuthorized(true);
-        setIsLoading(false);
 
-        // Extraction des informations de vol selon le type de réservation
+        // Extraire les IDs d'aéroports et les informations de ville
         if (parsed.type === 'oneWay') {
-          const { from, to, departureDate, departureTime, passengers: pass } = parsed.data;
-          setDepartureInfo(extractAirportInfo(from));
-          setArrivalInfo(extractAirportInfo(to));
+          const { from, to, fromId, toId, departureDate, departureTime, passengers: pass } = parsed.data;
+
+          // Extraire les villes uniquement pour l'affichage
+          setDepartureCity(getCityOnly(from));
+          setArrivalCity(getCityOnly(to));
+
+          // Extraire les codes IATA
+          const departureInfo = extractAirportInfo(from);
+          const arrivalInfo = extractAirportInfo(to);
+          setDepartureCode(departureInfo.code || '???');
+          setArrivalCode(arrivalInfo.code || '???');
+
+          // Stocker les IDs
+          setAirportIds({
+            departureId: fromId || extractAirportId(parsed.data.fromAirport),
+            arrivalId: toId || extractAirportId(parsed.data.toAirport)
+          });
+
           setFlightDate(departureDate);
           setFlightTime(departureTime);
           setPassengers((pass.adults || 0) + (pass.children || 0) + (pass.infants || 0));
         }
         else if (parsed.type === 'roundTrip') {
           const { outbound } = parsed.data;
-          setDepartureInfo(extractAirportInfo(outbound.from));
-          setArrivalInfo(extractAirportInfo(outbound.to));
+
+          // Extraire les villes uniquement pour l'affichage (on utilise le vol outbound)
+          setDepartureCity(getCityOnly(outbound.from));
+          setArrivalCity(getCityOnly(outbound.to));
+
+          // Extraire les codes IATA
+          const departureInfo = extractAirportInfo(outbound.from);
+          const arrivalInfo = extractAirportInfo(outbound.to);
+          setDepartureCode(departureInfo.code || '???');
+          setArrivalCode(arrivalInfo.code || '???');
+
+          // Stocker les IDs pour les deux vols
+          setAirportIds({
+            departureId: outbound.fromId || extractAirportId(outbound.fromAirport),
+            arrivalId: outbound.toId || extractAirportId(outbound.toAirport)
+          });
+
           setFlightDate(outbound.date);
           setFlightTime(outbound.time);
           setPassengers((outbound.passengers.adults || 0) + (outbound.passengers.children || 0) + (outbound.passengers.infants || 0));
@@ -204,13 +284,32 @@ export default function Details() {
         else if (parsed.type === 'multiLeg') {
           const firstLeg = parsed.data.legs[0];
           if (firstLeg) {
-            setDepartureInfo(extractAirportInfo(firstLeg.from));
-            setArrivalInfo(extractAirportInfo(firstLeg.to));
+            // Extraire les villes uniquement pour l'affichage (premier trajet)
+            setDepartureCity(getCityOnly(firstLeg.from));
+            setArrivalCity(getCityOnly(firstLeg.to));
+
+            // Extraire les codes IATA
+            const departureInfo = extractAirportInfo(firstLeg.from);
+            const arrivalInfo = extractAirportInfo(firstLeg.to);
+            setDepartureCode(departureInfo.code || '???');
+            setArrivalCode(arrivalInfo.code || '???');
+
+            // Stocker les IDs pour tous les trajets
+            const legsIds = parsed.data.legs.map((leg: any) => ({
+              fromId: leg.fromId || extractAirportId(leg.fromAirport),
+              toId: leg.toId || extractAirportId(leg.toAirport)
+            }));
+            setAirportIds({ legs: legsIds });
+
             setFlightDate(firstLeg.date);
             setFlightTime(firstLeg.time);
             setPassengers((firstLeg.passengers.adults || 0) + (firstLeg.passengers.children || 0) + (firstLeg.passengers.infants || 0));
           }
         }
+
+        setIsAuthorized(true);
+        setIsLoading(false);
+
       } catch (error) {
         console.error('Erreur lors de la vérification de l\'accès:', error);
         sessionStorage.removeItem('bookingData');
@@ -222,8 +321,7 @@ export default function Details() {
   }, [router]);
 
   /**
-   * DÉTECTION AUTOMATIQUE DU PAYS : Récupère le pays de l'utilisateur via son IP
-   * Utilisé pour pré-remplir le sélecteur de numéro de téléphone
+   * DÉTECTION AUTOMATIQUE DU PAYS
    */
   useEffect(() => {
     if (!isAuthorized) return;
@@ -242,7 +340,6 @@ export default function Details() {
           setCountry(data.country_code.toLowerCase());
         }
       } catch (error) {
-        // Log silencieux en production, détaillé en développement
         if (process.env.NODE_ENV === 'development') {
           console.warn("Détection du pays échouée:", error);
         }
@@ -254,7 +351,6 @@ export default function Details() {
 
   /**
    * Gestionnaire générique pour les champs de formulaire
-   * Supporte les inputs textuels, emails, selects et checkboxes
    */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value, type } = e.target;
@@ -268,7 +364,6 @@ export default function Details() {
 
   /**
    * Gestionnaire spécialisé pour le champ téléphone
-   * Utilise le composant PhoneInput qui a sa propre API
    */
   const handlePhoneChange = (value: string): void => {
     setFormData(prevState => ({
@@ -290,16 +385,10 @@ export default function Details() {
 
   /**
    * Soumission du formulaire d'authentification
-   * TODO: Intégration avec l'API d'authentification
    */
   const handleAuthSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-
-    // TODO: Implémenter la logique de connexion réelle
     console.log('Login:', authData);
-    // Exemple: await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify(authData) });
-
-    // Simulation de connexion réussie
     setShowAuth(false);
     setAuthData({
       email: '',
@@ -308,36 +397,211 @@ export default function Details() {
   };
 
   /**
-   * Soumission du formulaire principal de réservation
-   * Valide les données, envoie la réservation et redirige
+   * Transformation des données de réservation au format API avec les IDs corrects
    */
-  const handleSubmit = (e: React.FormEvent): void => {
+  const transformBookingDataToAPIFormat = () => {
+    if (!bookingData) return null;
+
+    // Vérifier que tous les IDs nécessaires sont disponibles
+    if (bookingData.type === 'oneWay') {
+      if (!airportIds.departureId || !airportIds.arrivalId) {
+        setErrorMessage("Airport IDs are missing. Please make sure airports are properly selected.");
+        return null;
+      }
+    } else if (bookingData.type === 'roundTrip') {
+      if (!airportIds.departureId || !airportIds.arrivalId) {
+        setErrorMessage("Airport IDs are missing. Please make sure airports are properly selected.");
+        return null;
+      }
+    } else if (bookingData.type === 'multiLeg') {
+      if (!airportIds.legs || airportIds.legs.some(leg => !leg.fromId || !leg.toId)) {
+        setErrorMessage("Airport IDs are missing for one or more legs. Please make sure all airports are properly selected.");
+        return null;
+      }
+    }
+
+    const customerDetails = {
+      title: formData.title,
+      firstname: formData.firstName,
+      lastname: formData.lastName,
+      address: formData.address,
+      phonenumber: formData.phone,
+      receivemails: formData.weeklyUpdates ? "1" : "0"
+    };
+
+    const legs: any[] = [];
+
+    if (bookingData.type === 'oneWay') {
+      const { from, to, departureDate, departureTime, passengers, pets, luggage } = bookingData.data;
+
+      legs.push({
+        origine_id: airportIds.departureId, // Utiliser l'ID stocké
+        origine: from, // Conserver le full_name original
+        destination_id: airportIds.arrivalId, // Utiliser l'ID stocké
+        destination: to, // Conserver le full_name original
+        date_heure_depart: `${departureDate} ${departureTime}:00`,
+        departureTime: departureTime,
+        nb_adults: passengers?.adults || 1,
+        nb_children: passengers?.children || 0,
+        nb_infant: passengers?.infants || 0,
+        nb_carry_on_luggage: luggage?.carryOn || 0,
+        nb_hold_luggage: luggage?.holdLuggage || 0,
+        nb_skis: luggage?.skis || 0,
+        nb_golf_bag: luggage?.golfBag || 0,
+        nb_others_luggage: luggage?.others || 0,
+        nb_small_pets: pets?.small || 0,
+        nb_large_pets: pets?.large || 0,
+      });
+    }
+    else if (bookingData.type === 'roundTrip') {
+      const { outbound, return: returnLeg } = bookingData.data;
+
+      // Outbound leg
+      legs.push({
+        origine_id: airportIds.departureId, // Utiliser l'ID stocké (from du outbound)
+        origine: outbound.from,
+        destination_id: airportIds.arrivalId, // Utiliser l'ID stocké (to du outbound)
+        destination: outbound.to,
+        date_heure_depart: `${outbound.date} ${outbound.time}:00`,
+        departureTime: outbound.time,
+        nb_adults: outbound.passengers?.adults || 1,
+        nb_children: outbound.passengers?.children || 0,
+        nb_infant: outbound.passengers?.infants || 0,
+        nb_carry_on_luggage: outbound.luggage?.carryOn || 0,
+        nb_hold_luggage: outbound.luggage?.holdLuggage || 0,
+        nb_skis: outbound.luggage?.skis || 0,
+        nb_golf_bag: outbound.luggage?.golfBag || 0,
+        nb_others_luggage: outbound.luggage?.others || 0,
+        nb_small_pets: outbound.pets?.small || 0,
+        nb_large_pets: outbound.pets?.large || 0,
+      });
+
+      // Return leg - les IDs sont inversés
+      legs.push({
+        origine_id: airportIds.arrivalId, // Utiliser l'ID arrival (qui devient le départ du retour)
+        origine: returnLeg.from,
+        destination_id: airportIds.departureId, // Utiliser l'ID departure (qui devient l'arrivée du retour)
+        destination: returnLeg.to,
+        date_heure_depart: `${returnLeg.date} ${returnLeg.time}:00`,
+        departureTime: returnLeg.time,
+        nb_adults: returnLeg.passengers?.adults || 1,
+        nb_children: returnLeg.passengers?.children || 0,
+        nb_infant: returnLeg.passengers?.infants || 0,
+        nb_carry_on_luggage: returnLeg.luggage?.carryOn || 0,
+        nb_hold_luggage: returnLeg.luggage?.holdLuggage || 0,
+        nb_skis: returnLeg.luggage?.skis || 0,
+        nb_golf_bag: returnLeg.luggage?.golfBag || 0,
+        nb_others_luggage: returnLeg.luggage?.others || 0,
+        nb_small_pets: returnLeg.pets?.small || 0,
+        nb_large_pets: returnLeg.pets?.large || 0,
+      });
+    }
+    else if (bookingData.type === 'multiLeg' && bookingData.data.legs && airportIds.legs) {
+      bookingData.data.legs.forEach((leg: FlightLeg, index: number) => {
+        const legIds = airportIds.legs![index];
+
+        if (!legIds?.fromId || !legIds?.toId) {
+          throw new Error(`Missing airport IDs for leg ${index + 1}`);
+        }
+
+        legs.push({
+          origine_id: legIds.fromId,
+          origine: leg.from,
+          destination_id: legIds.toId,
+          destination: leg.to,
+          date_heure_depart: `${leg.date} ${leg.time}:00`,
+          departureTime: leg.time,
+          nb_adults: leg.passengers?.adults || 1,
+          nb_children: leg.passengers?.children || 0,
+          nb_infant: leg.passengers?.infants || 0,
+          nb_carry_on_luggage: leg.luggage?.carryOn || 0,
+          nb_hold_luggage: leg.luggage?.holdLuggage || 0,
+          nb_skis: leg.luggage?.skis || 0,
+          nb_golf_bag: leg.luggage?.golfBag || 0,
+          nb_others_luggage: leg.luggage?.others || 0,
+          nb_small_pets: leg.pets?.small || 0,
+          nb_large_pets: leg.pets?.large || 0,
+        });
+      });
+    }
+
+    return {
+      customer: customerDetails,
+      legs: legs
+    };
+  };
+
+  /**
+   * Soumission du formulaire principal avec envoi API
+   */
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!isFormValid) {
-      console.warn("Formulaire invalide");
+      setErrorMessage("Please fill all required fields and accept terms & conditions.");
       return;
     }
 
-    // Construction de l'objet de réservation complet
-    const completeBooking = {
-      ...formData,
-      bookingDetails: bookingData,
-      submittedAt: new Date().toISOString()
-    };
+    setIsSubmitting(true);
+    setErrorMessage("");
 
-    console.log("Réservation complète:", completeBooking);
+    const apiData = transformBookingDataToAPIFormat();
 
-    // Nettoyage des données temporaires
-    sessionStorage.removeItem('bookingData');
+    if (!apiData) {
+      setIsSubmitting(false);
+      return;
+    }
 
-    // TODO: Redirection vers page de confirmation
-    // router.push('/confirmation');
+    console.log("Données envoyées à l'API:", JSON.stringify(apiData, null, 2));
+
+    try {
+      const apiUrl = "https://envyjet.com/api/envy/vol/newsQuotationRequests";
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(apiData)
+      });
+
+      console.log("Status de la réponse:", response.status);
+
+      let responseData;
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+        console.log('Réponse JSON de l\'API:', responseData);
+      } else {
+        const textResponse = await response.text();
+        console.log('Réponse texte de l\'API:', textResponse);
+        responseData = { message: textResponse };
+      }
+
+      if (!response.ok) {
+        const errorMsg = responseData?.message || responseData?.error || 'Erreur lors de la requête vers l\'API';
+        console.error('Erreur API détaillée:', responseData);
+        throw new Error(errorMsg);
+      }
+
+      console.log('Succès! Réponse complète:', responseData);
+
+      sessionStorage.removeItem('bookingData');
+
+      router.push('/booking-last-step');
+
+    } catch (error) {
+      console.error('Erreur complète:', error);
+      const errorMsg = error instanceof Error ? error.message : "Erreur lors de l'envoi des informations !";
+      setErrorMessage(errorMsg);
+      setIsSubmitting(false);
+    }
   };
 
   /**
    * Annulation de la réservation en cours
-   * Supprime les données et redirige vers l'accueil sans confirmation
    */
   const handleCancel = (): void => {
     sessionStorage.removeItem('bookingData');
@@ -346,23 +610,20 @@ export default function Details() {
 
   /**
    * Validation globale du formulaire
-   * Vérifie que tous les champs obligatoires sont remplis et valides
    */
   const isFormValid: boolean = Boolean(
     formData.firstName?.trim() &&
     formData.lastName?.trim() &&
-    formData.email?.trim() &&
+    formData.address?.trim() &&
     formData.phone?.trim() &&
     formData.acceptTerms
   );
 
-  // Styles réutilisables pour maintenir la cohérence UI
   const inputStyles = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500";
   const inputStyletitle = "w-full px-3 py-2 border text-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none";
   const labelStyles = "block text-sm font-medium text-gray-700 mb-2";
   const checkboxStyles = "mt-1 w-4 h-4 text-blue-400 border-gray-300 focus:ring-blue-500";
 
-  // État de chargement pendant la vérification d'accès
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -374,7 +635,6 @@ export default function Details() {
     );
   }
 
-  // Rendu nul si accès non autorisé (redirection en cours)
   if (!isAuthorized) {
     return null;
   }
@@ -384,17 +644,16 @@ export default function Details() {
       className="min-h-screen bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: 'url("images/arriere-plan-envyjet.jpg")' }}
     >
+      {/* Navbar placeholder */}
       <Navbar />
 
-      {/* Contenu principal avec grille responsive */}
       <div className="min-h-screen pt-26 pb-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 max-w-6xl mx-auto gap-0">
 
-            {/* COLONNE GAUCHE : Formulaire dynamique (auth ou details) */}
+            {/* COLONNE GAUCHE : Formulaire */}
             <section className="bg-white min-h-[630px] md:h-[630px] shadow-lg p-8">
               {showAuth ? (
-                // FORMULAIRE D'AUTHENTIFICATION
                 <>
                   <div className="flex justify-between items-center mb-2">
                     <h1 className="text-3xl font-bold text-gray-800">
@@ -459,7 +718,6 @@ export default function Details() {
                   </form>
                 </>
               ) : (
-                // FORMULAIRE PRINCIPAL DES DÉTAILS CLIENT
                 <>
                   <h1 className="text-3xl font-bold text-gray-800 mb-3 ">
                     Enter your details
@@ -476,8 +734,13 @@ export default function Details() {
                     </button>
                   </p>
 
+                  {errorMessage && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                      {errorMessage}
+                    </div>
+                  )}
+
                   <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                    {/* Grille Titre + Prénom */}
                     <div className="grid grid-cols-4 gap-1">
                       <div className="col-span-1">
                         <label htmlFor="title" className={labelStyles}>
@@ -516,7 +779,6 @@ export default function Details() {
                       </div>
                     </div>
 
-                    {/* Champ Nom */}
                     <div>
                       <label htmlFor="lastName" className={labelStyles}>
                         Last Name *
@@ -533,16 +795,15 @@ export default function Details() {
                       />
                     </div>
 
-                    {/* Champ Email */}
                     <div>
                       <label htmlFor="email" className={labelStyles}>
                         Email Address *
                       </label>
                       <input
-                        id="email"
+                        id="address"
                         type="email"
-                        name="email"
-                        value={formData.email}
+                        name="address"
+                        value={formData.address}
                         onChange={handleInputChange}
                         required
                         className={inputStyles}
@@ -550,7 +811,6 @@ export default function Details() {
                       />
                     </div>
 
-                    {/* Champ Téléphone avec sélecteur de pays */}
                     <div>
                       <label htmlFor="phone" className={labelStyles}>
                         Phone Number *
@@ -576,7 +836,6 @@ export default function Details() {
                       />
                     </div>
 
-                    {/* Checkboxes options et CGU */}
                     <div className="space-y-4">
                       <div className="flex items-start space-x-3">
                         <input
@@ -609,28 +868,28 @@ export default function Details() {
                       </div>
                     </div>
 
-                    {/* Actions principales */}
                     <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={handleCancel}
-                        className="flex-1 py-3 px-4 font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-200 border border-gray-300"
+                        disabled={isSubmitting}
+                        className="flex-1 py-3 px-4 font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-200 border border-gray-300 disabled:opacity-50"
                       >
                         CANCEL
                       </button>
 
                       <button
                         type="submit"
-                        disabled={!isFormValid}
+                        disabled={!isFormValid || isSubmitting}
                         className={`
                           flex-1 py-3 px-4 font-semibold text-white transition duration-200
-                          ${isFormValid
+                          ${isFormValid && !isSubmitting
                             ? "bg-[#d3a936] hover:bg-[#a98c2f] cursor-pointer"
-                            : "bg-[#d3a936] cursor-not-allowed"
+                            : "bg-[#d3a936] opacity-50 cursor-not-allowed"
                           }
                         `}
                       >
-                        CONFIRM
+                        {isSubmitting ? "SENDING..." : "CONFIRM"}
                       </button>
                     </div>
                   </form>
@@ -638,22 +897,18 @@ export default function Details() {
               )}
             </section>
 
-            {/* COLONNE DROITE : Récapitulatif visuel du vol */}
+            {/* COLONNE DROITE : Récapitulatif */}
             <section
               className="relative shadow-lg min-h-[600px] hidden lg:block bg-[#1a1a1a]"
             >
-              {/* Overlay de contenu structuré */}
               <div className="absolute w-full flex flex-col h-full px-8 py-6">
 
-                {/* En-tête avec trajet visuel */}
                 <div className="flex items-center justify-between mb-8 px-4 relative">
-                  {/* Aéroport de départ */}
                   <div className="text-center relative top-[38px]">
-                    <p className="text-xl text-white font-bold">{departureInfo.code}</p>
-                    <p className="text-sm text-gray-400">{departureInfo.city}</p>
+                    <p className="text-xl text-white font-bold">{departureCode}</p>
+                    <p className="text-sm text-gray-400">{departureCity}</p>
                   </div>
 
-                  {/* Représentation graphique du trajet */}
                   <div className="flex-1 relative mx-4">
                     <svg
                       width="100%"
@@ -670,7 +925,6 @@ export default function Details() {
                       />
                     </svg>
 
-                    {/* Icône avion positionnée au centre de la courbe */}
                     <div className="absolute top-[1px] left-1/2 transform -translate-x-1/2 rotate-90">
                       <svg
                         width="30"
@@ -683,20 +937,17 @@ export default function Details() {
                       </svg>
                     </div>
 
-                    {/* Type de vol affiché sous la courbe */}
                     <div className="absolute top-[40px] left-1/2 transform -translate-x-1/2 text-center">
                       <p className="text-xs text-white font-medium tracking-widest">{flightType}</p>
                     </div>
                   </div>
 
-                  {/* Aéroport d'arrivée */}
                   <div className="text-center relative top-[38px]">
-                    <p className="text-xl text-white font-bold">{arrivalInfo.code}</p>
-                    <p className="text-sm text-gray-400">{arrivalInfo.city}</p>
+                    <p className="text-xl text-white font-bold">{arrivalCode}</p>
+                    <p className="text-sm text-gray-400">{arrivalCity}</p>
                   </div>
                 </div>
 
-                {/* Informations détaillées du vol */}
                 {flightDate && flightTime && (
                   <div className="text-center mb-4">
                     <p className="text-white text-sm">
@@ -715,7 +966,6 @@ export default function Details() {
                   </div>
                 )}
 
-                {/* Carte de cotation de l'opérateur */}
                 <div className="flex justify-center mb-4">
                   <div className="bg-gray-200 text-black rounded-full w-80 h-80 flex flex-col justify-center items-center p-8">
                     <p className="text-sm text-gray-600 mb-2">Quote 1 of 3</p>
@@ -746,7 +996,6 @@ export default function Details() {
                   </div>
                 </div>
 
-                {/* Message informatif */}
                 <div className="mt-auto px-8">
                   <p className="text-white text-center text-sm leading-relaxed">
                     EnvyJet will share complete operator and aircraft details, along with authentic images of the exact aircraft you'll be flying in.
@@ -759,6 +1008,7 @@ export default function Details() {
         </div>
       </div>
 
+      {/* Footer placeholder */}
       <Footer />
     </div>
   );

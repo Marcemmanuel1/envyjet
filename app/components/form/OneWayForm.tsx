@@ -1,5 +1,4 @@
 // components/form/OneWayForm.tsx
-
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
@@ -16,11 +15,15 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState<OneWayFormData>({
     from: '',
     to: '',
-    departureDate: getToday(), // Date du jour par défaut
+    departureDate: getToday(),
     departureTime: '10:00',
     passengers: { adults: 1, children: 0, infants: 0 },
     pets: { small: 0, large: 0 },
     luggage: { carryOn: 0, holdLuggage: 0, skis: 0, golfBag: 0, others: 0 }
+  });
+  const [airportIds, setAirportIds] = useState({
+    fromId: null as number | null,
+    toId: null as number | null
   });
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { submitForm, isSubmitting } = useFormSubmission();
@@ -29,7 +32,7 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
   // Ref pour l'input date caché
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  // Fonction pour formater la date au format "11, Oct, 2025"
+  // Fonction pour formater la date
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -42,17 +45,23 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
     e.preventDefault();
     setValidationErrors([]);
 
-    if (!formData.from || !formData.to || !formData.departureDate) {
-      setValidationErrors(['Please fill all required fields']);
+    if (!formData.from || !formData.to || !formData.departureDate || !airportIds.fromId || !airportIds.toId) {
+      setValidationErrors(['Please fill all required fields and select valid airports']);
       return;
     }
 
-    sessionStorage.setItem('bookingData', JSON.stringify({
+    // Préparer les données avec les IDs
+    const bookingData = {
       type: 'oneWay',
-      data: formData,
+      data: {
+        ...formData,
+        fromId: airportIds.fromId,
+        toId: airportIds.toId
+      },
       timestamp: new Date().toISOString()
-    }));
+    };
 
+    sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
     router.push('/details');
   };
 
@@ -63,7 +72,24 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
     }
   }, [validationErrors.length]);
 
-  // Fonction pour ouvrir le sélecteur de date
+  const handleFromChange = (value: string, airport?: any) => {
+    handleInputChange('from', value);
+    if (airport && airport.id) {
+      setAirportIds(prev => ({ ...prev, fromId: airport.id }));
+    } else {
+      setAirportIds(prev => ({ ...prev, fromId: null }));
+    }
+  };
+
+  const handleToChange = (value: string, airport?: any) => {
+    handleInputChange('to', value);
+    if (airport && airport.id) {
+      setAirportIds(prev => ({ ...prev, toId: airport.id }));
+    } else {
+      setAirportIds(prev => ({ ...prev, toId: null }));
+    }
+  };
+
   const handleDateClick = () => {
     dateInputRef.current?.showPicker();
   };
@@ -89,39 +115,40 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
         </motion.div>
       )}
 
-      {/* Disposition responsive pour mobile, tablette et desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-15 gap-[1px]">
-        {/* From - Prend toute la largeur sur mobile, 1/2 sur tablette */}
         <motion.div
           whileHover={{ scale: 1.02 }}
           className="relative md:col-span-1 lg:col-span-3"
         >
           <AirportInput
             value={formData.from}
-            onChange={(value) => handleInputChange('from', value)}
+            onChange={(value) => handleFromChange(value)}
+            onAirportSelect={(airport) => handleFromChange(airport.full_name, airport)}
             placeholder="From"
+            airportId={airportIds.fromId}
+            onAirportIdChange={(id) => setAirportIds(prev => ({ ...prev, fromId: id }))}
           />
         </motion.div>
 
-        {/* To - Prend toute la largeur sur mobile, 1/2 sur tablette */}
         <motion.div
           whileHover={{ scale: 1.02 }}
           className="relative md:col-span-1 lg:col-span-3"
         >
           <AirportInput
             value={formData.to}
-            onChange={(value) => handleInputChange('to', value)}
+            onChange={(value) => handleToChange(value)}
+            onAirportSelect={(airport) => handleToChange(airport.full_name, airport)}
             placeholder="To"
+            airportId={airportIds.toId}
+            onAirportIdChange={(id) => setAirportIds(prev => ({ ...prev, toId: id }))}
           />
         </motion.div>
 
-        {/* Date - Prend toute la largeur sur mobile, 1/2 sur tablette */}
         <motion.div
           whileHover={{ scale: 1.02 }}
           className="relative md:col-span-1 lg:col-span-2"
         >
           <FiCalendar className="absolute left-1 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={20} />
-          {/* Input date caché mais fonctionnel */}
           <input
             ref={dateInputRef}
             type="date"
@@ -132,7 +159,6 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
             style={{ fontFamily: 'Century Gothic, sans-serif' }}
             required
           />
-          {/* Div d'affichage avec le format personnalisé */}
           <div
             className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-7 pr-2 py-3 lg:py-[18px] text-sm lg:text-[14px] cursor-pointer"
             style={{ fontFamily: 'Century Gothic, sans-serif' }}
@@ -142,7 +168,6 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           </div>
         </motion.div>
 
-        {/* Time - Prend toute la largeur sur mobile, 1/2 sur tablette */}
         <motion.div
           whileHover={{ scale: 1.02 }}
           className="relative md:col-span-1 lg:col-span-2"
@@ -158,7 +183,6 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           />
         </motion.div>
 
-        {/* Dropdowns - Prend toute la largeur sur mobile et tablette */}
         <div className="grid grid-cols-3 gap-[1px] md:col-span-2 lg:col-span-3">
           <div>
             <PassengersDropdown
@@ -182,7 +206,6 @@ const OneWayForm: React.FC<FormProps> = ({ onSubmit }) => {
           </div>
         </div>
 
-        {/* Bouton Search - Prend toute la largeur sur mobile et tablette */}
         <motion.button
           whileHover={{ scale: 1.03, backgroundColor: "#a98c2f" }}
           whileTap={{ scale: 0.97 }}

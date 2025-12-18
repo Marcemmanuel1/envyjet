@@ -1,3 +1,4 @@
+// components/form/MultiLegForm.tsx
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -14,7 +15,7 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
   const emptyLeg: FlightLeg = {
     from: '',
     to: '',
-    date: getToday(), // Date du jour par défaut
+    date: getToday(),
     time: '10:00',
     passengers: { adults: 1, children: 0, infants: 0 },
     pets: { small: 0, large: 0 },
@@ -22,11 +23,14 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
   };
 
   const [legs, setLegs] = useState<FlightLeg[]>([emptyLeg, emptyLeg]);
+  const [airportIds, setAirportIds] = useState<Array<{ fromId: number | null; toId: number | null }>>([
+    { fromId: null, toId: null },
+    { fromId: null, toId: null }
+  ]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { submitForm, isSubmitting } = useFormSubmission();
   const router = useRouter();
 
-  // Fonction pour formater la date au format "11, Oct, 2025"
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -37,11 +41,13 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
 
   const addLeg = useCallback(() => {
     setLegs(prev => [...prev, { ...emptyLeg }]);
+    setAirportIds(prev => [...prev, { fromId: null, toId: null }]);
   }, []);
 
   const removeLeg = useCallback((index: number) => {
     if (legs.length > 1) {
       setLegs(prev => prev.filter((_, i) => i !== index));
+      setAirportIds(prev => prev.filter((_, i) => i !== index));
     }
   }, [legs.length]);
 
@@ -57,20 +63,35 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
     }
   }, [validationErrors.length]);
 
+  const updateAirportId = useCallback((index: number, type: 'from' | 'to', id: number | null) => {
+    setAirportIds(prev => {
+      const newIds = [...prev];
+      newIds[index] = { ...newIds[index], [`${type}Id`]: id };
+      return newIds;
+    });
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const hasEmptyFields = legs.some(leg => !leg.from || !leg.to || !leg.date);
-    if (hasEmptyFields) {
-      setValidationErrors(['Please fill all required fields for each leg']);
+    const hasMissingIds = airportIds.some(id => !id.fromId || !id.toId);
+
+    if (hasEmptyFields || hasMissingIds) {
+      setValidationErrors(['Please fill all required fields and select valid airports for each leg']);
       return;
     }
 
-    const formData: MultiLegFormData = { legs };
+    // Préparer les données avec les IDs
+    const formData = legs.map((leg, index) => ({
+      ...leg,
+      fromId: airportIds[index].fromId,
+      toId: airportIds[index].toId
+    }));
 
     sessionStorage.setItem('bookingData', JSON.stringify({
       type: 'multiLeg',
-      data: formData,
+      data: { legs: formData },
       timestamp: new Date().toISOString()
     }));
 
@@ -108,30 +129,37 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
               )}
             </div>
 
-            {/* Disposition responsive pour mobile et tablette */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-14 gap-[1px] md:gap-[1px]">
-              {/* From - Prend toute la largeur sur mobile, 1/2 sur tablette */}
               <div className="relative md:col-span-1 lg:col-span-3">
                 <AirportInput
                   value={leg.from}
                   onChange={(value) => updateLeg(index, 'from', value)}
+                  onAirportSelect={(airport) => {
+                    updateLeg(index, 'from', airport.full_name);
+                    updateAirportId(index, 'from', airport.id);
+                  }}
                   placeholder="From"
+                  airportId={airportIds[index]?.fromId}
+                  onAirportIdChange={(id) => updateAirportId(index, 'from', id)}
                 />
               </div>
 
-              {/* To - Prend toute la largeur sur mobile, 1/2 sur tablette */}
               <div className="relative md:col-span-1 lg:col-span-3">
                 <AirportInput
                   value={leg.to}
                   onChange={(value) => updateLeg(index, 'to', value)}
+                  onAirportSelect={(airport) => {
+                    updateLeg(index, 'to', airport.full_name);
+                    updateAirportId(index, 'to', airport.id);
+                  }}
                   placeholder="To"
+                  airportId={airportIds[index]?.toId}
+                  onAirportIdChange={(id) => updateAirportId(index, 'to', id)}
                 />
               </div>
 
-              {/* Date - Prend toute la largeur sur mobile, 1/2 sur tablette */}
               <div className="relative md:col-span-1 lg:col-span-3">
                 <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={18} />
-                {/* Input date caché mais fonctionnel */}
                 <input
                   type="date"
                   value={leg.date}
@@ -141,12 +169,10 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                   style={{ fontFamily: 'Century Gothic, sans-serif' }}
                   required
                 />
-                {/* Div d'affichage avec le format personnalisé */}
                 <div
                   className="w-full bg-white border border-[#969696]/30 text-[#193650] pl-10 pr-4 py-[18px] text-sm cursor-pointer"
                   style={{ fontFamily: 'Century Gothic, sans-serif' }}
                   onClick={() => {
-                    // Ouvre le sélecteur de date natif
                     const dateInputs = document.querySelectorAll(`input[type="date"]`);
                     const dateInput = dateInputs[index] as HTMLInputElement;
                     dateInput?.showPicker();
@@ -156,7 +182,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 </div>
               </div>
 
-              {/* Time - Prend toute la largeur sur mobile, 1/2 sur tablette */}
               <div className="relative md:col-span-1 lg:col-span-2">
                 <FiClock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#a98c2f] z-10" size={18} />
                 <input
@@ -169,7 +194,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              {/* Dropdowns - Prend toute la largeur sur mobile et tablette, disposition en grille */}
               <div className="grid grid-cols-3 gap-[1px] md:gap-[1px] md:col-span-2 lg:col-span-3">
                 <PassengersDropdown
                   passengers={leg.passengers}
@@ -189,7 +213,6 @@ const MultiLegForm: React.FC<FormProps> = ({ onSubmit }) => {
         ))}
       </div>
 
-      {/* Boutons responsive */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-[1px] sm:gap-[1px]">
         <button
           type="submit"

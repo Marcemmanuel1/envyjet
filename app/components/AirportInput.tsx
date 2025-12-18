@@ -1,5 +1,4 @@
 // components/AirportInput.tsx
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -10,7 +9,9 @@ const AirportInput: React.FC<AirportInputProps> = ({
   value,
   onChange,
   placeholder,
-  onAirportSelect
+  onAirportSelect,
+  airportId,
+  onAirportIdChange
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Airport[]>([]);
@@ -69,6 +70,12 @@ const AirportInput: React.FC<AirportInputProps> = ({
     setIsFocused(false);
 
     onChange(displayValue);
+
+    // Notifier l'ID de l'aéroport sélectionné
+    if (onAirportIdChange) {
+      onAirportIdChange(airport.id);
+    }
+
     if (onAirportSelect) {
       onAirportSelect(airport);
     }
@@ -80,6 +87,11 @@ const AirportInput: React.FC<AirportInputProps> = ({
     setSearchTerm(newValue);
     onChange(newValue);
     setIsFocused(true);
+
+    // Si l'utilisateur efface l'input, réinitialiser l'ID
+    if (!newValue.trim() && onAirportIdChange) {
+      onAirportIdChange(null);
+    }
   };
 
   // Gérer le focus

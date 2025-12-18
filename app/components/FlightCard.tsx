@@ -5,7 +5,19 @@ import { X } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { useRouter } from 'next/navigation';
-import { Flight } from '../types';
+
+interface Flight {
+  id: number;
+  from: string;
+  to: string;
+  departureTime: string | null;
+  nbSeats: number | null;
+  cost: number;
+  exterior_photo: string;
+  interior_photo: string;
+  cabin_layout: string;
+}
+
 interface FlightCardProps {
   flight: Flight;
   onMoreInfo?: (flight: Flight) => void;
@@ -58,21 +70,33 @@ const FlightCard: React.FC<FlightCardProps> = ({
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Construire la galerie d'images depuis l'API
+  // IMPORTANT: Cette fonction crée la liste complète des images pour la galerie
+  // La première image (currentImages[0]) est celle affichée dans la carte
   const getFlightImages = (): string[] => {
     const images: string[] = [];
 
-    // Image principale (exterior ou image par défaut)
-    if (flight.exterior_photo) {
+    // Log pour diagnostiquer les images disponibles
+    console.log('Flight images data:', {
+      exterior_photo: flight.exterior_photo,
+      interior_photo: flight.interior_photo,
+      cabin_layout: flight.cabin_layout
+    });
+
+    // Image principale exterior_photo - C'EST CELLE AFFICHÉE DANS LA CARTE
+    if (flight.exterior_photo && flight.exterior_photo.trim() !== '') {
+      console.log('Adding exterior_photo:', flight.exterior_photo);
       images.push(flight.exterior_photo);
     }
 
-    // Photo intérieur
-    if (flight.interior_photo) {
+    // Photo intérieur - AJOUTÉE À LA GALERIE
+    if (flight.interior_photo && flight.interior_photo.trim() !== '') {
+      console.log('Adding interior_photo:', flight.interior_photo);
       images.push(flight.interior_photo);
     }
 
-    // Plan de cabine
-    if (flight.cabin_layout) {
+    // Plan de cabine - AJOUTÉ À LA GALERIE
+    if (flight.cabin_layout && flight.cabin_layout.trim() !== '') {
+      console.log('Adding cabin_layout:', flight.cabin_layout);
       images.push(flight.cabin_layout);
     }
 
@@ -81,9 +105,12 @@ const FlightCard: React.FC<FlightCardProps> = ({
       images.push('https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=800&h=600&fit=crop');
     }
 
+    console.log('Total images in gallery:', images.length, images);
+
     return images;
   };
 
+  // Liste complète des images (utilisée pour la carte ET la galerie)
   const currentImages = getFlightImages();
 
   // Fonctions pour la galerie d'images
@@ -151,7 +178,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Effacer l'erreur du champ quand l'utilisateur commence à taper
     if (formErrors[name]) {
       setFormErrors(prev => {
         const newErrors = { ...prev };
@@ -176,7 +202,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
     }));
     setCountry(countryData.countryCode);
 
-    // Effacer l'erreur du téléphone
     if (formErrors.phone) {
       setFormErrors(prev => {
         const newErrors = { ...prev };
@@ -242,20 +267,17 @@ const FlightCard: React.FC<FlightCardProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Préparation des données pour l'API
       const payload = {
-        flight: flight.id.toString(), // ID du vol
-        // Customer details
+        flight: flight.id.toString(),
         title: formData.title,
         firstname: formData.firstName.trim(),
         lastname: formData.lastName.trim(),
-        address: "", // Pas de champ address dans le formulaire actuel
+        address: "",
         phonenumber: formData.phone,
         receivemails: formData.weeklyUpdates,
         bookingstage: 1
       };
 
-      // Envoi à l'API
       const response = await fetch('https://envyjet.com/api/envy/vol/newInterest', {
         method: 'POST',
         headers: {
@@ -272,10 +294,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
       const result = await response.json();
       console.log('API Response:', result);
 
-      // Succès - redirection vers booking-last-step
       setSubmitSuccess(true);
 
-      // Redirection après 1.5 secondes pour laisser voir le message de succès
       setTimeout(() => {
         closeInfoModal();
         router.push('/booking-last-step');
@@ -312,7 +332,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
     return `${dayName} ${day} ${month} ${year}`;
   };
 
-  // Déterminer le type d'avion basé sur la capacité
   const getAircraftType = (capacity: number | null): string => {
     if (!capacity || capacity <= 6) return 'Light Jet';
     if (capacity <= 8) return 'Midsize Jet';
@@ -320,7 +339,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
     return 'Heavy Jet';
   };
 
-  // Obtenir le nom de l'avion
   const getAircraftName = (type: string): string => {
     const aircraftMap: Record<string, string[]> = {
       'Light Jet': ['Citation CJ3', 'Learjet 75', 'Phenom 300'],
@@ -333,21 +351,17 @@ const FlightCard: React.FC<FlightCardProps> = ({
     return available[Math.floor(Math.random() * available.length)];
   };
 
-  // Préparer les données pour l'affichage
   const departure = formatDate(flight.departureTime);
   const aircraftType = getAircraftType(flight.nbSeats);
   const aircraftName = getAircraftName(aircraftType);
   const capacity = flight.nbSeats || 0;
 
-  // Données pour la colonne droite
   const flightType = "EMPTY LEG";
   const passengers = capacity;
 
-  // Extraire le code IATA pour l'affichage dans le modal
   const departureCode = extractAirportCode(flight.from);
   const arrivalCode = extractAirportCode(flight.to);
 
-  // Extraction des informations de date et heure
   const extractDateTime = (departureString: string) => {
     if (departureString === 'Date not available') return { date: "", time: "12:00" };
 
@@ -375,14 +389,11 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
   const { date, time } = extractDateTime(departure);
 
-  // Fonction pour extraire la ville seulement (pour le modal)
   const extractCityOnly = (airportString: string): string => {
     if (!airportString) return '';
     const parts = airportString.split(',');
     if (parts.length >= 2) {
-      // Prendre la deuxième partie (après la virgule) et enlever le code pays
       const cityPart = parts[1].trim();
-      // Enlever tout ce qui est entre parenthèses et le code pays à la fin
       return cityPart.replace(/\([^)]*\)/g, '').replace(/,?\s*[A-Z]{2}$/, '').trim();
     }
     return parts[0].trim();
@@ -390,11 +401,11 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
   return (
     <>
-      {/* Carte de vol principale - STYLE DE L'ANCIEN FICHIER */}
+      {/* Carte de vol principale */}
       <div className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
         <div className="flex flex-col md:flex-row">
 
-          {/* Section image - cliquable pour ouvrir la galerie */}
+          {/* Section image - L'IMAGE AFFICHÉE ICI EST currentImages[0] (exterior_photo) */}
           <div
             className="md:w-60 h-48 md:h-auto cursor-pointer"
             onClick={handleImageClick}
@@ -406,7 +417,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
             />
           </div>
 
-          {/* Section informations du vol - STYLE ORIGINAL MAIS AVEC AÉROPORTS COMPLETS */}
+          {/* Section informations du vol */}
           <div className="flex-1 p-6 flex flex-col justify-between">
             <div>
               <p className="text-gray-600 text-sm mb-4">
@@ -434,7 +445,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
             </div>
           </div>
 
-          {/* Section prix et action - STYLE ORIGINAL */}
+          {/* Section prix et action */}
           <div className="p-6 md:w-54 flex md:flex-col justify-between items-start md:items-end border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50">
             <div className="w-full mb-4">
               <p className="text-gray-600 text-left md:text-right text-sm mb-1">
@@ -454,7 +465,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
         </div>
       </div>
 
-      {/* Modale de galerie d'images */}
+      {/* Modale de galerie d'images - AFFICHE TOUTES LES IMAGES (exterior_photo, interior_photo, cabin_layout) */}
       {isImageModalOpen && (
         <div className="fixed inset-0 bg-black/85 bg-opacity-90 z-50 flex items-center justify-center p-4">
           <button
@@ -602,7 +613,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
                       </button>
                     </p>
 
-                    {/* Messages de succès/erreur */}
                     {submitSuccess && (
                       <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
                         <p className="font-semibold">Success!</p>

@@ -1,4 +1,5 @@
 "use client";
+import router from "next/navigation";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
@@ -8,6 +9,12 @@ import Navbar from "../components/Navbar";
  * et fournit les prochaines étapes au client.
  */
 export default function ThankYou() {
+
+  const handleCancel = (): void => {
+    sessionStorage.removeItem('bookingData');
+    router.back();
+  };
+
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
@@ -109,7 +116,7 @@ export default function ThankYou() {
                 {/* Call-to-action principal pour retour à l'accueil */}
                 <div className="mt-8">
                   <a
-                    href="/"
+                    onClick={handleCancel}
                     className="inline-block bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold py-3 px-8 transition duration-200 transform hover:scale-105"
                   >
                     Return to Homepage

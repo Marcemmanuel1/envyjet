@@ -64,6 +64,8 @@ export interface PassengerData {
 export interface OneWayFormData {
   from: string;
   to: string;
+  fromId?: number | null;
+  toId?: number | null;
   departureDate: string;
   departureTime: string;
   passengers: PassengerData;
@@ -74,6 +76,8 @@ export interface OneWayFormData {
 export interface FlightLeg {
   from: string;
   to: string;
+  fromId?: number | null;
+  toId?: number | null;
   date: string;
   time: string;
   passengers: PassengerData;
@@ -106,4 +110,6 @@ export interface AirportInputProps {
   onChange: (value: string) => void;
   placeholder: string;
   onAirportSelect?: (airport: Airport) => void;
+  airportId?: number | null;
+  onAirportIdChange?: (id: number | null) => void;
 }
