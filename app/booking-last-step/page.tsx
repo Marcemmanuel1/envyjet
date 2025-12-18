@@ -1,5 +1,7 @@
+// app/booking-last-step/page.tsx
 "use client";
-import router from "next/navigation";
+
+import { useRouter } from "next/navigation";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
@@ -9,10 +11,11 @@ import Navbar from "../components/Navbar";
  * et fournit les prochaines étapes au client.
  */
 export default function ThankYou() {
+  const router = useRouter();
 
-  const handleCancel = (): void => {
+  const handleReturn = (): void => {
     sessionStorage.removeItem('bookingData');
-    router.back();
+    router.back(); // Retour à la page précédente
   };
 
   return (
@@ -115,12 +118,12 @@ export default function ThankYou() {
 
                 {/* Call-to-action principal pour retour à l'accueil */}
                 <div className="mt-8">
-                  <a
-                    onClick={handleCancel}
-                    className="inline-block bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold py-3 px-8 transition duration-200 transform hover:scale-105"
+                  <button
+                    onClick={handleReturn}
+                    className="inline-block bg-[#d3a936] hover:bg-[#a98c2f] text-white font-semibold py-3 px-8 transition duration-200 transform hover:scale-105 cursor-pointer"
                   >
                     Return to Homepage
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
