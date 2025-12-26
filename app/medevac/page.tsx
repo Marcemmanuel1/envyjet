@@ -133,8 +133,7 @@ export default function MedevacPage() {
               For immediate advice and a fast response
             </h2>
             <p className="text-lg lg:text-xl text-[#193650] mb-8 leading-relaxed text-justify" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
-              Victor's rapid medical evacuation and medical repatriation experts can have a team of doctors and paramedics airborne in just two hours. Whatever the emergency, our 24-hour service can arrange an air ambulance, medevac or medical transportation anytime of the day or night.
-            </p>
+              EnvyJet's rapid medical evacuation and medical repatriation experts can have a team of doctors and paramedics airborne in just two hours. Whatever the emergency, our 24-hour service can arrange an air ambulance, medevac or medical transportation anytime of the day or night.            </p>
           </div>
         </div>
       </section>

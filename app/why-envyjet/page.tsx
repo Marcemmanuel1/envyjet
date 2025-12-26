@@ -146,7 +146,7 @@ export default function WhyEnvyJet() {
               transition={{ duration: 0.6 }}
               className="text-4xl font-bold text-center text-gray-800 mb-12"
             >
-              Our Exclusive Advantages
+              Our Access to an Exclusive Fleet
             </motion.h2>
 
             <motion.div

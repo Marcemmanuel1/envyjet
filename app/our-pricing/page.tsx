@@ -48,8 +48,8 @@ const OurPricingPage = () => {
                 <button
                   onClick={() => setActiveSection('pricing')}
                   className={`block w-full text-left transition-colors duration-200 py-2 border-b border-gray-200 ${activeSection === 'pricing'
-                      ? 'text-[#b8922e] font-semibold'
-                      : 'text-gray-700 hover:text-[#b8922e]'
+                    ? 'text-[#b8922e] font-semibold'
+                    : 'text-gray-700 hover:text-[#b8922e]'
                     }`}
                 >
                   OUR PRICING
@@ -65,8 +65,8 @@ const OurPricingPage = () => {
                 <button
                   onClick={() => setActiveSection('safety')}
                   className={`block w-full text-left transition-colors duration-200 py-2 border-b border-gray-200 ${activeSection === 'safety'
-                      ? 'text-[#b8922e] font-semibold'
-                      : 'text-gray-700 hover:text-[#b8922e]'
+                    ? 'text-[#b8922e] font-semibold'
+                    : 'text-gray-700 hover:text-[#b8922e]'
                     }`}
                 >
                   SAFETY
@@ -100,7 +100,7 @@ const OurPricingPage = () => {
                       Charter Pricing
                     </h3>
                     <p className="text-gray-700 mb-4">
-                      EnvyJet works with the leading operators to offer you the best selection and the most competitive prices for your itinerary. Quotes include landing fees, basic catering for Europe and taxes where required.
+                      EnvyJet works with the leading operators to offer you the best selection and the most competitive prices for your itinerary. Quotes include landing fees, basic catering for Africa and taxes where required.
                     </p>
                     <p className="text-gray-700 mb-4">
                       There are no extra costs for taxiing time or fuel surcharges. Please contact the EnvyJet Team for information on additional charges such as de-icing.
