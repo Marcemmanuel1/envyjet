@@ -296,7 +296,7 @@ export default function GroupCharter() {
                 <div className="bg-[#f8f8f8] p-8 w-full text-center border border-[#e5e5e5]">
                   <FiMail className="text-[#a98c2f] mx-auto mb-4" size={32} />
                   <h3 className="text-xl font-medium text-[#193650] mb-2" style={{ fontFamily: 'Century Gothic, sans-serif' }}>Email</h3>
-                  <p className="text-[#193650] text-lg" style={{ fontFamily: 'Century Gothic, sans-serif' }}>commercialjetsales@envyjet.com</p>
+                  <p className="text-[#193650] text-lg" style={{ fontFamily: 'Century Gothic, sans-serif' }}>sales@envyjet.com</p>
                 </div>
               </div>
             </div>

@@ -17,21 +17,24 @@ const OFFICE_LOCATIONS = [
     phone: "+225 27 22 58 42 00",
     address: "Plateau, Boulevard de la République",
     fullAddress: "Plateau, Boulevard de la République, Abidjan, Côte d'Ivoire",
-    image: "/images/abidjan.jpeg"
+    image: "/images/abidjan.jpeg",
+    isComingSoon: false
   },
   {
     city: "Lagos",
     phone: "+234 807 727 7555",
     address: "Murtala Muhammed International Airport (LOS)",
     fullAddress: "Murtala Muhammed International Airport (LOS), Ikeja, Lagos, Nigeria",
-    image: "/images/lagos.jpg"
+    image: "/images/lagos.jpg",
+    isComingSoon: true
   },
   {
-    city: "Londres",
+    city: "London",
     phone: "+44 20 7946 0958",
     address: "London City Airport, Royal Docks",
     fullAddress: "London City Airport, Royal Docks, London E16 2PX",
-    image: "/images/londre.avif"
+    image: "/images/londre.avif",
+    isComingSoon: true
   }
 ];
 
@@ -145,7 +148,6 @@ export default function ContactUs() {
         </div>
       </section>
 
-
       {/* Section des bureaux */}
       <section className="py-16 bg-white w-full">
         <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
@@ -184,6 +186,11 @@ export default function ContactUs() {
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  {office.isComingSoon && (
+                    <div className="absolute top-4 right-4 bg-[#a98c2f] text-white px-3 py-1 text-sm font-medium">
+                      Coming Soon
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-6">
@@ -191,26 +198,42 @@ export default function ContactUs() {
                     {office.city}
                   </h3>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <FiPhone className="text-[#a98c2f]" size={18} />
-                      <span className="text-[#193650] text-sm" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
-                        {office.phone}
-                      </span>
+                  {office.isComingSoon ? (
+                    <div className="text-center py-4">
+                      <div className="inline-flex items-center justify-center space-x-2 text-[#a98c2f]">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span className="text-lg font-medium" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
+                          Coming Soon
+                        </span>
+                      </div>
+                      <p className="text-[#969696] text-sm mt-2" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
+                        Our {office.city} office will be opening soon
+                      </p>
                     </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <FiPhone className="text-[#a98c2f]" size={18} />
+                        <span className="text-[#193650] text-sm" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
+                          {office.phone}
+                        </span>
+                      </div>
 
-                    <div className="flex items-start space-x-3">
-                      <FiMapPin className="text-[#a98c2f] mt-1" size={18} />
-                      <div>
-                        <p className="text-[#193650] text-sm font-medium" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
-                          {office.address}
-                        </p>
-                        <p className="text-[#969696] text-xs mt-1" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
-                          {office.fullAddress}
-                        </p>
+                      <div className="flex items-start space-x-3">
+                        <FiMapPin className="text-[#a98c2f] mt-1" size={18} />
+                        <div>
+                          <p className="text-[#193650] text-sm font-medium" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
+                            {office.address}
+                          </p>
+                          <p className="text-[#969696] text-xs mt-1" style={{ fontFamily: 'Century Gothic, sans-serif' }}>
+                            {office.fullAddress}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -348,4 +371,4 @@ export default function ContactUs() {
       <Footer />
     </div>
   );
-}
+} 
