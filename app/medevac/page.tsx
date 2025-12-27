@@ -164,7 +164,7 @@ export default function MedevacPage() {
               className="relative h-96 lg:h-[40vh]"
             >
               <SafeImage
-                src="/images/envyjet-medevac.avif"
+                src="/images/envyjet-medevac.png"
                 alt="Tyrol Air Ambulance"
                 className="w-full h-[40vh] shadow-lg"
               />

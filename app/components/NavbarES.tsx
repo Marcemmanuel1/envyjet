@@ -42,7 +42,7 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
     { label: 'Team', href: '/team' },
     { label: 'Group Charter', href: '/group-charter' },
     { label: 'Medevac', href: '/medevac' },
-    { label: 'Destinations', href: '/destinations' }
+    //{ label: 'Destinations', href: '/destinations' }
   ];
 
   const allMobileMenuItems = [...menuItems, ...burgerMenuItems];

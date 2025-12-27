@@ -52,7 +52,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
     { label: 'Team', href: '/team' },
     { label: 'Group Charter', href: '/group-charter' },
     { label: 'Medevac', href: '/medevac' },
-    { label: 'Destinations', href: '/destinations' }
+    //{ label: 'Destinations', href: '/destinations' }
   ];
 
   // Tous les liens combinés pour le menu mobile
