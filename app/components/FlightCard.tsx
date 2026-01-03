@@ -219,42 +219,42 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
             <!-- Logo + menu -->
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border-bottom: 1px solid #e5e7eb;">
-  <tr>
-    <!-- Logo à gauche -->
-    <td align="left" style="padding: 24px 32px;">
-      <img
-        src="https://sp-p6.com/marcemmanuel/logo-envyjet/logo_mobile.png"
-        alt="EnvyJet"
-        width="120"
-        style="display:block; height:auto;"
-      />
-    </td>
+              <tr>
+                <!-- Logo à gauche -->
+                <td align="left" style="padding: 24px 32px;">
+                  <img
+                    src="https://sp-p6.com/marcemmanuel/logo-envyjet/logo_mobile.png"
+                    alt="EnvyJet"
+                    width="120"
+                    style="display:block; height:auto;"
+                  />
+                </td>
 
-    <!-- Liens à droite -->
-    <td align="right" style="padding: 24px 32px; font-weight: 600; font-size: 12px; color: #1e40af;">
-      <a
-        href="https://envyjet.com/shared-flights"
-        style="color:#1e40af; text-decoration:none; margin-right:24px;"
-      >
-        SHARED FLIGHTS
-      </a>
+                <!-- Liens à droite -->
+                <td align="right" style="padding: 24px 32px; font-weight: 600; font-size: 12px; color: #1e40af;">
+                  <a
+                    href="https://envyjet.com/shared-flights"
+                    style="color:#1e40af; text-decoration:none; margin-right:24px;"
+                  >
+                    SHARED FLIGHTS
+                  </a>
 
-      <a
-        href="https://envyjet.com/empty-legs"
-        style="color:#1e40af; text-decoration:none; margin-right:24px;"
-      >
-        EMPTY LEGS
-      </a>
+                  <a
+                    href="https://envyjet.com/empty-legs"
+                    style="color:#1e40af; text-decoration:none; margin-right:24px;"
+                  >
+                    EMPTY LEGS
+                  </a>
 
-      <a
-        href="https://envyjet.com/contact"
-        style="color:#1e40af; text-decoration:none;"
-      >
-        CONTACT US
-      </a>
-    </td>
-  </tr>
-</table>
+                  <a
+                    href="https://envyjet.com/contact"
+                    style="color:#1e40af; text-decoration:none;"
+                  >
+                    CONTACT US
+                  </a>
+                </td>
+              </tr>
+            </table>
 
 
 
