@@ -5,9 +5,7 @@ import { X } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { useRouter } from 'next/navigation';
-import { Flight } from '../types'; // Import depuis types/index.ts
-
-// Interface locale supprimée - on utilise celle de types/index.ts
+import { Flight } from '../types';
 
 interface FlightCardProps {
   flight: Flight;
@@ -148,6 +146,221 @@ const FlightCard: React.FC<FlightCardProps> = ({
     setIsSubmitting(false);
   };
 
+  // Fonction pour envoyer l'email de confirmation
+  const sendConfirmationEmail = async (userData: typeof formData, flightData: Flight) => {
+    try {
+      // Extraire les informations de vol
+      const extractAirportCode = (airportString: string): string => {
+        if (!airportString) return '';
+        const match = airportString.match(/\(([A-Z]{3})\)/);
+        return match ? match[1] : '';
+      };
+
+      const extractCityOnly = (airportString: string): string => {
+        if (!airportString) return '';
+        const parts = airportString.split(',');
+        if (parts.length >= 2) {
+          const cityPart = parts[1].trim();
+          return cityPart.replace(/\([^)]*\)/g, '').replace(/,?\s*[A-Z]{2}$/, '').trim();
+        }
+        return parts[0].trim();
+      };
+
+      const formatDate = (dateTimeString: string): string => {
+        if (!dateTimeString) return 'Date not available';
+        const date = new Date(dateTimeString);
+        if (isNaN(date.getTime())) return 'Date not available';
+
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        const dayName = days[date.getDay()];
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+
+        return `${dayName} ${day} ${month} ${year}`;
+      };
+
+      const departure = flightData.departure || formatDate(flightData.departureTime);
+      const departureCode = flightData.codeFrom || extractAirportCode(flightData.from);
+      const arrivalCode = flightData.codeTo || extractAirportCode(flightData.to);
+      const departureCity = extractCityOnly(flightData.from);
+      const arrivalCity = extractCityOnly(flightData.to);
+
+      // Générer un numéro de référence unique (simplifié)
+      const referenceNumber = `EJ-EF-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
+      // Construire le contenu HTML de l'email
+      const emailContent = `
+        <div style="min-height: 100vh; background-color: #f3f4f6; padding: 40px 16px; font-family: Arial, sans-serif; color: #374151;">
+          <div style="max-width: 672px; margin: 0 auto; background-color: white; border: 1px solid #e5e7eb;">
+
+            <!-- Header info -->
+            <div style="padding: 32px; border-bottom: 1px solid #e5e7eb;">
+              <p style="margin-bottom: 8px;">
+                <strong style="color: #111827;">EnvyJet Flight Enquiry:</strong> ${referenceNumber}
+              </p>
+            </div>
+
+            <div style="padding: 16px 32px; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb;">
+              <p><strong>Expéditeur :</strong> EnvyJet (sales@envyjet.com)</p>
+              <p><strong>À :</strong> ${userData.email}</p>
+              <p><strong>Date :</strong> ${new Date().toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })} à ${new Date().toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })}</p>
+            </div>
+
+            <!-- Logo + menu -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border-bottom: 1px solid #e5e7eb;">
+  <tr>
+    <!-- Logo à gauche -->
+    <td align="left" style="padding: 24px 32px;">
+      <img
+        src="https://sp-p6.com/marcemmanuel/logo-envyjet/logo_mobile.png"
+        alt="EnvyJet"
+        width="120"
+        style="display:block; height:auto;"
+      />
+    </td>
+
+    <!-- Liens à droite -->
+    <td align="right" style="padding: 24px 32px; font-weight: 600; font-size: 12px; color: #1e40af;">
+      <a
+        href="https://envyjet.com/shared-flights"
+        style="color:#1e40af; text-decoration:none; margin-right:24px;"
+      >
+        SHARED FLIGHTS
+      </a>
+
+      <a
+        href="https://envyjet.com/empty-legs"
+        style="color:#1e40af; text-decoration:none; margin-right:24px;"
+      >
+        EMPTY LEGS
+      </a>
+
+      <a
+        href="https://envyjet.com/contact"
+        style="color:#1e40af; text-decoration:none;"
+      >
+        CONTACT US
+      </a>
+    </td>
+  </tr>
+</table>
+
+
+
+            <!-- Body -->
+            <div style="padding: 32px;">
+
+              <p>Dear <strong>${userData.firstName} ${userData.lastName}</strong>,</p>
+
+              <p style="margin-top: 16px;">
+                Thank you, we have received your request to book an empty leg flight
+              </p>
+
+              <p style="margin-top: 16px;">
+                Your EnvyJet flight reference is: <strong>${referenceNumber}</strong>
+              </p>
+
+              <p style="margin-top: 24px; font-weight: 600;">Requested Flight Details:</p>
+
+              <div style="margin-top: 8px;">
+                <p style="font-weight: 600; color: #374151;">FLIGHT SUMMARY</p>
+
+                <p style="margin-top: 8px;">
+                  <strong>Leg 1:</strong> ${flightData.from} (${departureCode}) - ${flightData.to} (${arrivalCode})
+                </p>
+
+                <p>
+                  Departing (Local time): ${departure}
+                </p>
+
+                <p>
+                  Departure City: ${departureCity}
+                </p>
+
+                <p>
+                  Arrival City: ${arrivalCity}
+                </p>
+              </div>
+
+              <hr style="margin: 24px 0; border-color: #e5e7eb;" />
+
+              <div>
+                <p style="font-weight: 600; margin-bottom: 8px;">Next steps:</p>
+                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 8px;">
+                  <li>We'll call you to discuss the details of your flight</li>
+                  <li>Your request will be submitted to our approval process</li>
+                  <li>You will receive price confirmation shortly</li>
+                </ul>
+              </div>
+
+              <p style="margin-top: 24px;">
+                If you have any questions, please contact us on +225 07 59 10 25 03 (24 hours) or you can access your account online:
+              </p>
+
+              <div style="margin-top: 24px;">
+                <a href="https://envyjet.com/account" style="display: inline-block; background: linear-gradient(to right, #92400e, #d97706); color: white; font-weight: 600; padding: 12px 32px; text-decoration: none; border-radius: 4px;">
+                  YOUR ENVYJET ACCOUNT
+                </a>
+              </div>
+
+              <p style="margin-top: 32px;">
+                Kind regards
+                <br />
+                The EnvyJet Team
+                <br />
+                www.envyjet.com
+              </p>
+
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
+                <p>
+                  We are available 24 hours a day, 7 days a week; e: sales@envyjet.com t: +225 07 59 10 25 03
+                  <br />
+                  Prices are subject to availability and correct at time of sending. All details provided by you will be held by EnvyJet Sarl and used in accordance with our Privacy Policy and Terms & Conditions.
+                </p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Envoyer l'email via l'API
+      const emailResponse = await fetch('https://envyjet.com/api/send-mail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: userData.email,
+          subject: `EnvyJet Flight Enquiry: ${referenceNumber}`,
+          content: emailContent
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        console.error('Email sending failed:', await emailResponse.text());
+        // Ne pas échouer la soumission principale si l'email échoue
+      } else {
+        console.log('Confirmation email sent successfully');
+      }
+
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Ne pas bloquer le flux principal si l'email échoue
+    }
+  };
+
   // Gestionnaires de formulaire
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value, type } = e.target;
@@ -246,6 +459,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
     setIsSubmitting(true);
 
     try {
+      // 1. Soumettre les données de vol
       const payload = {
         flight: flight.id.toString(),
         title: formData.title,
@@ -273,8 +487,13 @@ const FlightCard: React.FC<FlightCardProps> = ({
       const result = await response.json();
       console.log('API Response:', result);
 
+      // 2. Envoyer l'email de confirmation
+      await sendConfirmationEmail(formData, flight);
+
+      // 3. Mettre à jour l'état de succès
       setSubmitSuccess(true);
 
+      // 4. Rediriger après un délai
       setTimeout(() => {
         closeInfoModal();
         router.push('/booking-last-step');
@@ -606,7 +825,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
                     {submitSuccess && (
                       <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
                         <p className="font-semibold">Success!</p>
-                        <p>Your flight interest has been submitted successfully. Redirecting to next step...</p>
+                        <p>Your flight interest has been submitted successfully. A confirmation email has been sent to your address.</p>
                       </div>
                     )}
 
@@ -776,7 +995,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
                               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
-                              Redirecting...
+                              Email sent! Redirecting...
                             </span>
                           ) : (
                             "CONFIRM"
