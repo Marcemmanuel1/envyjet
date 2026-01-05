@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import NavbarES from '../components/NavbarES';
 import Footer from "../components/Footer";
@@ -28,20 +28,18 @@ const EmptyLegsPage = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('https://envyjet.com/api/envy/emptyLegs', {
+      const response = await fetch(`${API_BASE_URL}/api/envy/emptyLegs`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data: ApiResponse = await response.json();
-      console.log('API Response:', data);
 
       if (data.code === 200 && Array.isArray(data.flight)) {
         setAllFlights(data.flight);

@@ -1,5 +1,6 @@
 // app/details/page.tsx
 "use client";
+import { API_BASE_URL } from '../config/api';
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import PhoneInput from "react-phone-input-2";
@@ -555,7 +556,7 @@ export default function Details() {
     console.log("Données envoyées à l'API:", JSON.stringify(apiData, null, 2));
 
     try {
-      const apiUrl = "https://envyjet.com/api/envy/vol/newsQuotationRequests";
+      const apiUrl = `${API_BASE_URL}/api/envy/vol/newsQuotationRequests`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',

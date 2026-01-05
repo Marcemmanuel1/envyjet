@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from '../config/api';
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useState } from "react";
@@ -51,7 +52,7 @@ export default function Login() {
 
     try {
       // Appel à l'API de connexion
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('${API_BASE_URL}/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +96,7 @@ export default function Login() {
 
     try {
       // Appel à l'API de réinitialisation de mot de passe
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

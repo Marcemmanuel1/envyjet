@@ -1,7 +1,7 @@
 // app/page.tsx
 
 'use client';
-
+import { API_BASE_URL } from './config/api';
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -37,7 +37,7 @@ export default function Home() {
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/newsletter/subscribe', {
+      const response = await fetch(`${API_BASE_URL}/api/newsletter/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

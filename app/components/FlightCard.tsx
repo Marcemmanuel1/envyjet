@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
@@ -336,7 +336,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
       `;
 
       // Envoyer l'email via l'API
-      const emailResponse = await fetch('https://envyjet.com/api/send-mail', {
+      const emailResponse = await fetch(`${API_BASE_URL}/api/send-mail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -471,7 +471,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
         bookingstage: 1
       };
 
-      const response = await fetch('https://envyjet.com/api/envy/vol/newInterest', {
+      const response = await fetch(`${API_BASE_URL}/api/envy/vol/newInterest`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
