@@ -196,27 +196,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
         <div style="min-height: 100vh; background-color: #f3f4f6; padding: 40px 16px; font-family: Arial, sans-serif; color: #374151;">
           <div style="max-width: 672px; margin: 0 auto; background-color: white; border: 1px solid #e5e7eb;">
 
-            <!-- Header info -->
-            <div style="padding: 32px; border-bottom: 1px solid #e5e7eb;">
-              <p style="margin-bottom: 8px;">
-                <strong style="color: #111827;">EnvyJet Flight Enquiry:</strong> ${referenceNumber}
-              </p>
-            </div>
-
-            <div style="padding: 16px 32px; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb;">
-              <p><strong>Expéditeur :</strong> EnvyJet (sales@envyjet.com)</p>
-              <p><strong>À :</strong> ${userData.email}</p>
-              <p><strong>Date :</strong> ${new Date().toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })} à ${new Date().toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      })}</p>
-            </div>
-
             <!-- Logo + menu -->
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border-bottom: 1px solid #e5e7eb;">
               <tr>
