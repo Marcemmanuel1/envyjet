@@ -1,6 +1,6 @@
 "use client";
 import { API_BASE_URL } from '../config/api';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -11,6 +11,9 @@ interface FlightCardProps {
   flight: Flight;
   onMoreInfo?: (flight: Flight) => void;
   useIntegratedModal?: boolean;
+  // Nouvelles props pour gérer la visibilité et le comptage
+  onDateCheck?: (flightId: string, isValid: boolean) => void;
+  index?: number;
 }
 
 // Styles réutilisables
@@ -22,9 +25,15 @@ const checkboxStyles = "mt-1 w-4 h-4 text-blue-400 border-gray-300 focus:ring-bl
 const FlightCard: React.FC<FlightCardProps> = ({
   flight,
   onMoreInfo,
-  useIntegratedModal = true
+  useIntegratedModal = true,
+  onDateCheck,
+  index
 }) => {
   const router = useRouter();
+
+  // État pour vérifier si la date est valide (non expirée)
+  const [isDateValid, setIsDateValid] = useState(true);
+  const [hasCheckedDate, setHasCheckedDate] = useState(false);
 
   // États pour la galerie d'images
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -57,6 +66,69 @@ const FlightCard: React.FC<FlightCardProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Fonction pour vérifier si la date de départ est valide (non expirée)
+  const checkIfDateIsValid = (): boolean => {
+    const departureDate = flight.departureTime || flight.departure;
+
+    if (!departureDate) {
+      // Si pas de date disponible, on considère comme valide par défaut
+      return true;
+    }
+
+    try {
+      const departureDateTime = new Date(departureDate);
+      const now = new Date();
+
+      // Si la date de départ est après maintenant ou aujourd'hui, elle est valide
+      // Pour inclure les vols d'aujourd'hui, on compare les dates sans l'heure
+      const departureDateOnly = new Date(
+        departureDateTime.getFullYear(),
+        departureDateTime.getMonth(),
+        departureDateTime.getDate()
+      );
+      const nowDateOnly = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
+
+      return departureDateOnly >= nowDateOnly;
+    } catch (error) {
+      console.error('Erreur lors de la vérification de la date:', error);
+      return true; // En cas d'erreur, on affiche par défaut
+    }
+  };
+
+  // Vérifier la date au chargement et quand la flight change
+  useEffect(() => {
+    const isValid = checkIfDateIsValid();
+    setIsDateValid(isValid);
+
+    // Notifier le parent du résultat de la vérification
+    if (onDateCheck && !hasCheckedDate) {
+      onDateCheck(flight.id.toString(), isValid);
+      setHasCheckedDate(true);
+    }
+
+    // Vérifier périodiquement (toutes les minutes) pour les vols proches
+    const intervalId = setInterval(() => {
+      const currentIsValid = checkIfDateIsValid();
+      if (currentIsValid !== isDateValid) {
+        setIsDateValid(currentIsValid);
+        if (onDateCheck) {
+          onDateCheck(flight.id.toString(), currentIsValid);
+        }
+      }
+    }, 60000); // 60 secondes
+
+    return () => clearInterval(intervalId);
+  }, [flight, onDateCheck, hasCheckedDate, isDateValid]);
+
+  // Si la date est expirée, ne rien afficher
+  if (!isDateValid) {
+    return null;
+  }
 
   // Construire la galerie d'images depuis l'API
   const getFlightImages = (): string[] => {
@@ -234,8 +306,6 @@ const FlightCard: React.FC<FlightCardProps> = ({
                 </td>
               </tr>
             </table>
-
-
 
             <!-- Body -->
             <div style="padding: 32px;">
@@ -640,7 +710,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
                 {flight.pricestarting || 'Price starting from'}
               </p>
               <p className="text-2xl md:text-3xl text-left md:text-right font-bold text-gray-800">
-                €{(flight.cost || flight.price).toLocaleString()}
+                €{((flight.cost || flight.price || 0)).toLocaleString()}
               </p>
             </div>
             <button

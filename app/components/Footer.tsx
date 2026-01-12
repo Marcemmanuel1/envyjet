@@ -18,8 +18,8 @@ const Footer = () => {
     {
       title: 'Services',
       links: [
-        { label: 'Private Jet Charter', href: '/jet-charter' },
-        { label: 'Shared Flights', href: '/shared-flights' },
+        { label: 'Private Jet Charter', href: '#' },
+        { label: 'Shared Flights', href: '#' },
         { label: 'Empty Legs', href: '/empty-legs' },
         { label: 'Nectar Program', href: '/nectar' },
         { label: 'Groupe charter', href: '/group-charter' },
@@ -39,10 +39,10 @@ const Footer = () => {
       title: 'Support',
       links: [
         { label: 'Contact Us', href: '/contact' },
-        { label: 'FAQ', href: '/faq' },
-        { label: 'Booking Guide', href: '/guide' },
-        { label: 'Privacy Policy', href: '/privacy' },
-        { label: 'Terms of Service', href: '/terms' }
+        { label: 'FAQ', href: '#' },
+        { label: 'Booking Guide', href: '#' },
+        { label: 'Privacy Policy', href: '#' },
+        { label: 'Terms of Service', href: '#' }
       ]
     }
   ];

@@ -42,14 +42,14 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
   const menuItems = [
     { label: 'WHY ENVYJET', href: '/why-envyjet' },
     { label: 'NECTAR', href: '/nectar' },
-    { label: 'SHARED FLIGHTS', href: '/shared-flights' },
+    { label: 'SHARED FLIGHTS', href: '#' },
     { label: 'EMPTY LEGS', href: '/empty-legs' }
   ];
 
   const burgerMenuItems = [
     { label: 'Contact Us', href: '/contact' },
     { label: 'Our Pricing', href: '/our-pricing' },
-    { label: 'Team', href: '/team' },
+    { label: 'Team', href: '#' },
     { label: 'Group Charter', href: '/group-charter' },
     { label: 'Medevac', href: '/medevac' },
     //{ label: 'Destinations', href: '/destinations' }

@@ -204,8 +204,8 @@ const SharedFlightsPage = () => {
       cityFrom: 'Atlanta',
       cityTo: 'Nashville',
       pricestarting: pricestarting,
-      interior_photo: '',  // Ajoutez ceci
-      cabin_layout: '',    // Ajoutez ceci
+      interior_photo: '',
+      cabin_layout: '',
       exterior_photo: ''
     }
   ];

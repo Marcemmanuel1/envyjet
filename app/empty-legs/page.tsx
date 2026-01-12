@@ -1,6 +1,6 @@
 "use client";
 import { API_BASE_URL } from '../config/api';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import NavbarES from '../components/NavbarES';
 import Footer from "../components/Footer";
 import SearchForm from "../components/SearchForm";
@@ -17,16 +17,74 @@ const EmptyLegsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [allFlights, setAllFlights] = useState<Flight[]>([]);
   const [filteredFlights, setFilteredFlights] = useState<Flight[]>([]);
+  const [displayedFlights, setDisplayedFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [validFlightCount, setValidFlightCount] = useState(0);
+  const [validFlightIds, setValidFlightIds] = useState<Set<string>>(new Set());
 
   const itemsPerPage = 6;
+
+  // Fonction pour vérifier si une date est valide (non expirée)
+  const isFlightDateValid = useCallback((flight: Flight): boolean => {
+    const departureDate = flight.departureTime || flight.departure;
+
+    if (!departureDate) {
+      return true; // Si pas de date, on affiche par défaut
+    }
+
+    try {
+      const departureDateTime = new Date(departureDate);
+      const now = new Date();
+
+      // Comparer les dates sans l'heure pour inclure les vols d'aujourd'hui
+      const departureDateOnly = new Date(
+        departureDateTime.getFullYear(),
+        departureDateTime.getMonth(),
+        departureDateTime.getDate()
+      );
+      const nowDateOnly = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
+
+      return departureDateOnly >= nowDateOnly;
+    } catch (error) {
+      console.error('Erreur lors de la vérification de la date:', error);
+      return true; // En cas d'erreur, on affiche par défaut
+    }
+  }, []);
+
+  // Filtrer les vols expirés
+  const filterExpiredFlights = useCallback((flights: Flight[]): Flight[] => {
+    return flights.filter(flight => isFlightDateValid(flight));
+  }, [isFlightDateValid]);
+
+  // Gérer la notification de validité de date depuis FlightCard
+  const handleDateCheck = useCallback((flightId: string, isValid: boolean) => {
+    setValidFlightIds(prev => {
+      const newSet = new Set(prev);
+      if (isValid) {
+        newSet.add(flightId);
+      } else {
+        newSet.delete(flightId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Mettre à jour le compteur de vols valides
+  useEffect(() => {
+    setValidFlightCount(validFlightIds.size);
+  }, [validFlightIds]);
 
   // Fetch empty legs from API
   const fetchEmptyLegs = async () => {
     try {
       setLoading(true);
       setError(null);
+      setValidFlightIds(new Set());
 
       const response = await fetch(`${API_BASE_URL}/api/envy/emptyLegs`, {
         method: 'GET',
@@ -42,11 +100,19 @@ const EmptyLegsPage = () => {
       const data: ApiResponse = await response.json();
 
       if (data.code === 200 && Array.isArray(data.flight)) {
-        setAllFlights(data.flight);
-        setFilteredFlights(data.flight);
+        // Filtrer les vols expirés dès le chargement
+        const validFlights = filterExpiredFlights(data.flight);
+        setAllFlights(validFlights);
+        setFilteredFlights(validFlights);
+        setDisplayedFlights(validFlights.slice(0, itemsPerPage));
 
-        if (data.flight.length === 0) {
-          setError('No empty legs available at the moment. Please check back later.');
+        // Initialiser les IDs valides
+        const initialValidIds = new Set(validFlights.map(f => f.id.toString()));
+        setValidFlightIds(initialValidIds);
+        setValidFlightCount(validFlights.length);
+
+        if (validFlights.length === 0) {
+          setError('No upcoming empty legs available at the moment. Please check back later.');
         }
       } else {
         throw new Error('Invalid response format');
@@ -56,6 +122,8 @@ const EmptyLegsPage = () => {
       setError('Failed to load empty legs. Please try again later.');
       setAllFlights([]);
       setFilteredFlights([]);
+      setDisplayedFlights([]);
+      setValidFlightCount(0);
     } finally {
       setLoading(false);
     }
@@ -153,10 +221,15 @@ const EmptyLegsPage = () => {
     fetchEmptyLegs();
   }, []);
 
-  // Calculate pagination
-  const indexOfLastFlight = currentPage * itemsPerPage;
-  const indexOfFirstFlight = indexOfLastFlight - itemsPerPage;
-  const currentFlights = filteredFlights.slice(indexOfFirstFlight, indexOfLastFlight);
+  // Calculer les vols à afficher pour la page courante
+  useEffect(() => {
+    const indexOfLastFlight = currentPage * itemsPerPage;
+    const indexOfFirstFlight = indexOfLastFlight - itemsPerPage;
+    const currentFlights = filteredFlights.slice(indexOfFirstFlight, indexOfLastFlight);
+    setDisplayedFlights(currentFlights);
+  }, [currentPage, filteredFlights, itemsPerPage]);
+
+  // Calculer le nombre total de pages
   const totalPages = Math.ceil(filteredFlights.length / itemsPerPage);
 
   return (
@@ -214,18 +287,19 @@ const EmptyLegsPage = () => {
           {!loading && !error && (
             <>
               <h2 className="text-2xl text-[#b8922e] mb-8">
-                {filteredFlights.length} {filteredFlights.length === 1 ? 'Match' : 'Matches'}
+                {validFlightCount} {validFlightCount === 1 ? 'Match' : 'Matches'}
               </h2>
 
-              {currentFlights.length > 0 ? (
+              {displayedFlights.length > 0 ? (
                 <>
                   {/* Flight Cards Grid */}
-                  <div className="grid gap-8 mb-12">
-                    {currentFlights.map((flight) => (
+                  <div id="flight-results" className="grid gap-8 mb-12">
+                    {displayedFlights.map((flight) => (
                       <FlightCard
                         key={flight.id}
                         flight={flight}
                         useIntegratedModal={true}
+                        onDateCheck={handleDateCheck}
                       />
                     ))}
                   </div>
@@ -244,10 +318,10 @@ const EmptyLegsPage = () => {
               ) : (
                 <div className="text-center py-12">
                   <p className="text-gray-600 text-lg">
-                    No flights found matching your search criteria.
+                    No upcoming flights found matching your search criteria.
                   </p>
                   <p className="text-gray-500 mt-2">
-                    Try adjusting your search filters or browse all available flights.
+                    Try adjusting your search filters or check back later for new flights.
                   </p>
                 </div>
               )}
