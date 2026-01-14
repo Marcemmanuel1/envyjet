@@ -70,7 +70,7 @@ const Footer = () => {
               className="mb-6"
             >
               <img
-                src="/images/logo_footer.png"
+                src="/images/logo_footer.webp"
                 alt="EnvyJet"
                 className="h-24 w-auto mb-4"
               />

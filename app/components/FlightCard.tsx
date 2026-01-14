@@ -1016,8 +1016,16 @@ const FlightCard: React.FC<FlightCardProps> = ({
                             disabled={isSubmitting || submitSuccess}
                           />
                           <div className="flex-1">
+
                             <label htmlFor="acceptTerms" className="text-sm text-gray-700">
-                              By submitting your flight request, you agree to our Terms and Conditions and Privacy Policy.
+                              By submitting your flight request, you agree to our
+                              <a href="/terms" className="text-[#d3a936] font-bold hover:underline ml-1">
+                                Terms and Conditions
+                              </a>
+                              <span className="mx-1">and</span>
+                              <a href="/privacy" className="text-[#d3a936] font-bold hover:underline">
+                                Privacy Policy
+                              </a>.
                             </label>
                             {formErrors.acceptTerms && (
                               <p className="text-red-500 text-sm mt-1">{formErrors.acceptTerms}</p>

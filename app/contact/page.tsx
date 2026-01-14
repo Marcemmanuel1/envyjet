@@ -17,7 +17,7 @@ const OFFICE_LOCATIONS = [
     phone: "+225 27 22 58 42 00",
     address: "Plateau, Boulevard de la République",
     fullAddress: "Plateau, Boulevard de la République, Abidjan, Côte d'Ivoire",
-    image: "/images/abidjan.jpeg",
+    image: "/images/abidjan.webp",
     isComingSoon: false
   },
   {
@@ -25,7 +25,7 @@ const OFFICE_LOCATIONS = [
     phone: "+234 807 727 7555",
     address: "Murtala Muhammed International Airport (LOS)",
     fullAddress: "Murtala Muhammed International Airport (LOS), Ikeja, Lagos, Nigeria",
-    image: "/images/lagos.jpg",
+    image: "/images/lagos.webp",
     isComingSoon: true
   },
   {
@@ -33,7 +33,7 @@ const OFFICE_LOCATIONS = [
     phone: "+44 20 7946 0958",
     address: "London City Airport, Royal Docks",
     fullAddress: "London City Airport, Royal Docks, London E16 2PX",
-    image: "/images/londre.avif",
+    image: "/images/londre.webp",
     isComingSoon: true
   }
 ];
@@ -120,7 +120,7 @@ export default function ContactUs() {
       {/* Section Hero */}
       <section
         className="relative min-h-[60vh] flex items-center justify-center w-full bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/bg-contact.jpg')" }}
+        style={{ backgroundImage: "url('/images/bg-contact.webp')" }}
       >
         {/* Superposition sombre */}
         <div className="absolute inset-0 bg-black/40"></div>
@@ -182,7 +182,7 @@ export default function ContactUs() {
                     alt={`EnvyJet Office in ${office.city}`}
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
-                      e.currentTarget.src = "/images/placeholder-office.jpg";
+                      e.currentTarget.src = "/images/placeholder-office.webp";
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />

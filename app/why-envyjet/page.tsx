@@ -56,7 +56,7 @@ export default function WhyEnvyJet() {
       {/* Hero Section */}
       <section
         className="relative min-h-[60vh] flex items-center justify-center w-full bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/bg-contact.jpg')" }}
+        style={{ backgroundImage: "url('/images/bg-contact.webp')" }}
       >
         {/* Superposition sombre */}
         <div className="absolute inset-0 bg-black/40"></div>

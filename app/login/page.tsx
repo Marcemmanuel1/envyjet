@@ -145,7 +145,7 @@ export default function Login() {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url("images/arriere-plan-envyjet.jpg")' }}
+      style={{ backgroundImage: 'url("images/arriere-plan-envyjet.webp")' }}
     >
       <Navbar />
 
@@ -230,7 +230,7 @@ export default function Login() {
                   {/* Logo à la place du texte */}
                   <div className="flex justify-center mb-4">
                     <img
-                      src="/images/logo_mobile.png"
+                      src="/images/logo_mobile.webp"
                       alt="EnvyJet Logo"
                       className="h-18 w-auto"
                     />

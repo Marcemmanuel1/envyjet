@@ -21,7 +21,7 @@ export default function ThankYou() {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url("images/arriere-plan-envyjet.jpg")' }}
+      style={{ backgroundImage: 'url("images/arriere-plan-envyjet.webp")' }}
     >
       <Navbar />
 

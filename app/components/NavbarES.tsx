@@ -101,7 +101,7 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
             whileHover={{ scale: 1.05 }}
             className="flex items-center">
             <img
-              src={isScrolled ? "/images/logo_mobile.png" : "/images/logo_footer.png"}
+              src={isScrolled ? "/images/logo_mobile.webp" : "/images/logo_footer.webp"}
               alt="EnvyJet"
               className="h-10 w-auto"
             />
@@ -238,7 +238,7 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
                 </motion.button>
 
                 <img
-                  src="/images/logo_footer.png"
+                  src="/images/logo_footer.webp"
                   alt="EnvyJet"
                   className="h-8 w-auto object-contain"
                 />
@@ -303,7 +303,7 @@ const NavbarSE = ({ transparent = true }: NavbarProps) => {
                 >
                   <FiX size={22} />
                 </motion.button>
-                <img src="/images/logo_footer.png" className="h-8" />
+                <img src="/images/logo_footer.webp" className="h-8" />
               </div>
 
               <div className="flex flex-col space-y-1">

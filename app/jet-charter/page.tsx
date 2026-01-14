@@ -16,7 +16,7 @@ export default function JetCharterPage() {
       <section
         className="relative min-h-[70vh] flex items-center justify-center w-full bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "linear-gradient(rgba(25, 54, 80, 0.6), rgba(25, 54, 80, 0.8)), url('/images/bg-empty-shared.jpg')"
+          backgroundImage: "linear-gradient(rgba(25, 54, 80, 0.6), rgba(25, 54, 80, 0.8)), url('/images/bg-empty-shared.webp')"
         }}
       >
         <div className="relative z-10 text-center text-white w-full px-6">

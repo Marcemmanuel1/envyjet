@@ -105,7 +105,7 @@ export default function MedevacPage() {
       <section className="relative h-[70vh] flex items-center justify-center w-full overflow-hidden" style={{ margin: 0, padding: 0 }}>
         <div className="absolute inset-0">
           <SafeImage
-            src="/images/medevac-background.jpg"
+            src="/images/medevac-background.webp"
             alt="Air Ambulance and Medevac"
             className="w-full h-full object-cover"
           />
@@ -164,7 +164,7 @@ export default function MedevacPage() {
               className="relative h-96 lg:h-[40vh]"
             >
               <SafeImage
-                src="/images/envyjet-medevac.png"
+                src="/images/envyjet-medevac.webp"
                 alt="Tyrol Air Ambulance"
                 className="w-full h-[40vh] shadow-lg"
               />

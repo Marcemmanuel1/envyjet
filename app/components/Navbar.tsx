@@ -111,7 +111,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
               className="flex items-center"
             >
               <img
-                src={isScrolled ? "/images/logo_mobile.png" : "/images/logo_footer.png"}
+                src={isScrolled ? "/images/logo_mobile.webp" : "/images/logo_footer.webp"}
                 alt="EnvyJet"
                 className="h-10 sm:h-12 w-auto transition-all duration-300 filter brightness-100"
               />
@@ -303,7 +303,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 </motion.button>
 
                 <img
-                  src="/images/logo_footer.png"
+                  src="/images/logo_footer.webp"
                   alt="EnvyJet"
                   className="h-8 w-auto object-contain"
                 />
@@ -393,7 +393,7 @@ const Navbar = ({ transparent = true }: NavbarProps) => {
                 </motion.button>
 
                 <img
-                  src="/images/logo_footer.png"
+                  src="/images/logo_footer.webp"
                   alt="EnvyJet"
                   className="h-8 w-auto"
                 />

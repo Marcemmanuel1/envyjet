@@ -199,7 +199,7 @@ export default function Home() {
                   className="relative h-100 overflow-hidden shadow-xl"
                 >
                   <SafeImage
-                    src="/images/about-too-envyjet.jpg"
+                    src="/images/about-too-envyjet.webp"
                     alt="Luxury jet interior"
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                   />
@@ -211,7 +211,7 @@ export default function Home() {
                   className="relative h-100 overflow-hidden shadow-xl mt-8"
                 >
                   <SafeImage
-                    src="/images/about-three-envyjet.jpg"
+                    src="/images/about-three-envyjet.webp"
                     alt="Private jet exterior"
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                   />
@@ -229,7 +229,7 @@ export default function Home() {
         className="relative py-12 lg:py-20 w-full bg-cover bg-center bg-no-repeat"
         style={{
           margin: 0,
-          backgroundImage: "url('images/service.jpg')",
+          backgroundImage: "url('images/service.webp')",
         }}
       >
         <div className="absolute inset-0 bg-black/40"></div>

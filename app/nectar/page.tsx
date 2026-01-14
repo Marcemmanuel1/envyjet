@@ -9,7 +9,7 @@ import Navbar from '../components/Navbar';
 // Données pour les photos de la galerie
 const GALLERY_IMAGES = [
   {
-    src: "/images/interieur-deux.jpg",
+    src: "/images/interieur-deux.webp",
     alt: "Nectar Luxury Experience"
   },
   {
@@ -17,19 +17,19 @@ const GALLERY_IMAGES = [
     alt: "Nectar Partner Hotel"
   },
   {
-    src: "/images/interieur-trois.jpg",
+    src: "/images/interieur-trois.webp",
     alt: "Nectar Yacht Service"
   },
   {
-    src: "/images/service-empty-legs.jpg",
+    src: "/images/service-empty-legs.webp",
     alt: "Nectar Concierge"
   },
   {
-    src: "/images/service-shared-flights.jpg",
+    src: "/images/service-shared-flights.webp",
     alt: "Nectar Points Redemption"
   },
   {
-    src: "/images/service-private-jet.jpg",
+    src: "/images/service-private-jet.webp",
     alt: "Nectar Member Benefits"
   }
 ];

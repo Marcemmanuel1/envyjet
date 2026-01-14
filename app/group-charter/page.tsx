@@ -60,7 +60,7 @@ export default function GroupCharter() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center w-full overflow-hidden bg-gradient-to-br from-[#1a3a57] to-[#2d5a82] bg-cover bg-center bg-no-repeat" style={{ margin: 0, padding: 0, backgroundImage: "url('/images/group-charter-envyjet-hero.jpg')" }}>
+      <section className="relative min-h-screen flex flex-col items-center justify-center w-full overflow-hidden bg-gradient-to-br from-[#1a3a57] to-[#2d5a82] bg-cover bg-center bg-no-repeat" style={{ margin: 0, padding: 0, backgroundImage: "url('/images/group-charter-envyjet-hero.webp')" }}>
         <div className="absolute inset-0 bg-[#1a3a57]/80"></div>
 
         <div className="relative z-10 w-full flex-1 flex items-center justify-center px-4 md:px-0 pt-20 pb-8">
@@ -258,7 +258,7 @@ export default function GroupCharter() {
             >
               <div className="relative h-80 lg:h-[550px] overflow-hidden border border-[#e5e5e5] shadow-lg">
                 <SafeImage
-                  src="/images/group-charter-envyjet-b.jpg"
+                  src="/images/group-charter-envyjet-b.webp"
                   alt="Luxury group travel experience"
                   className="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-105"
                 />

@@ -888,7 +888,7 @@ export default function Details() {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url("images/arriere-plan-envyjet.jpg")' }}
+      style={{ backgroundImage: 'url("images/arriere-plan-envyjet.webp")' }}
     >
       <Navbar />
 
@@ -1124,11 +1124,11 @@ export default function Details() {
                         />
                         <label htmlFor="acceptTerms" className="text-sm text-gray-700">
                           By submitting your flight request, you agree to our
-                          <a href="/terms" className="text-blue-600 hover:text-blue-800 underline ml-1">
+                          <a href="/terms" className="text-[#d3a936] font-bold hover:underline ml-1">
                             Terms and Conditions
                           </a>
                           <span className="mx-1">and</span>
-                          <a href="/privacy" className="text-blue-600 hover:text-blue-800 underline">
+                          <a href="/privacy" className="text-[#d3a936] font-bold hover:underline">
                             Privacy Policy
                           </a>.
                         </label>
